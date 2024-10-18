@@ -1,0 +1,50 @@
+div.bg{
+    width:96%;
+    height:100%;
+    background-color:#444444;
+    position:fixed;
+    left:2%;
+    top:0;
+    z-index:0;
+}
+div.topheader {
+    background-color: #FFFFFF;
+    width: 100%;
+    height: 95px;
+    left: 0px;
+    top: 0px;
+    position: fixed;
+    transition:0.20s;
+    z-index: 2;
+}
+.headbutton{
+    background-color:#2414D9;
+    width:18%;
+    font-size:200%;
+    height:50px;
+    top:10px;
+    left:9%;
+    margin-right:3%;
+    display:inline-block;
+    padding-top:15px;
+    position:relative;
+    border-radius:25px;
+    text-align:center;
+    color:#99FF00;
+    border:5px solid #99FF00;
+    transition:0.2s;
+    z-index:3;
+}
+.headbutton:hover{
+    background-color:blue;
+    border:5px solid yellow;
+    width:18%;
+}
+div.bottomtext{
+    background-color: green;
+    width:100%;
+    position:absolute;
+    left:0;
+    font-size:20px;
+    z-index:2;
+}
