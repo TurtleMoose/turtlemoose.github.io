@@ -6,12 +6,12 @@
         <link rel="shortcut icon" href="imgs/favicon.png"/>
         <link rel="shortcut icon" href="imgs/favicon.ico"/>
     </head>
-    <div id="bg"class="bg"style="color:white;"><br><br><br><br><br><br>To whoever at Lightspeed looks at this:<br>Please catergorize it in a way it isn't blocked, I'm just not done coding it yet. Thanks!</div>
+    <div id="bg"class="bg"></div>
+    <div id="edgeL"class="edge"></div>
+    <div id="edgeR"class="edge"style="left:98%;"></div>
     <body style="font-family:arial;font-weight:bold;">
-        <div id="topheader"class="topheader">
+        <div id="header"class="header">
             <img src="imgs/FranklinITnoslogan.png"id="headerimg"onClick="location.href = 'https://yourmodernproblems.com/'"style="transition:0.2s;height:50px;left:3%;position:fixed;">
-          <!--  <img src="imgs/SmallFranklinITedge.png"style="left:0;top:0;position:absolute;width:2%;">
-            <img src="imgs/SmallFranklinITedge.png"style="left:98%;top:0;position:absolute;width:2%;">-->
             <div id="buttonbox"style="left:39%;width:60%;position:fixed;"><!--button box, also known as absolute BS-->
                 <div id="button1"class="headbutton"onClick="location.href = 'https://yourmodernproblems.com/buy/';">SELLING</div>
                 <div id="button2"class="headbutton"onClick="location.href = 'https://yourmodernproblems.com/build/';">BUILD</div>
@@ -19,60 +19,9 @@
                 <div id="button4"class="headbutton"onClick="location.href = 'https://yourmodernproblems.com/about/';">ABOUT</div>
             </div>
         </div>
+        <img id="darkbutton"class="darkbutton"src="imgs/light.png"onclick="makeitdark();">
         <div class="headbutton"style="top:1000px;">REMOVE ME</div>
     </body>
 </html>
+<script src="main.js"></script>
 <!--Blue:#2414D9 Yellow:#99FF00-->
-<script>
-    //some random dark mode stuff, maybe I'll do something with it
-    if (window.matchMedia) {const query = window.matchMedia('prefers-color-scheme: dark');}
-    const isDarkMode = () =>window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if(isDarkMode){
-
-    }
-    //header scrolling
-    //yes, this has to be here. Otherwise the header freaking
-    //kills itself if the page loads at 0,0. Absolute BS.
-    document.getElementById("topheader").style.fontSize = "100%";
-    document.getElementById("button1").style.paddingTop = "15px";
-    document.getElementById("topheader").style.height = "95px";
-    document.getElementById("buttonbox").style.top = "0px";
-    document.getElementById("headerimg").style.height="95px"
-    for(var i=1;i<5;i++){
-        document.getElementById("button"+i).style.height = "50px";
-        document.getElementById("button"+i).style.paddingTop = "15px";
-        document.getElementById("button"+i).style.top = "10px";
-        document.getElementById("button"+i).style.borderRadius = "25px";
-    }
-    //I think if it scrolls, it calls that function.
-    window.onscroll = function() {scrollFunction()};
-    function scrollFunction() {
-        if(document.body.scrollTop > 37 || document.documentElement.scrollTop > 37){
-            //if scrolled down past 37px
-            document.getElementById("topheader").style.fontSize = "100%";
-            document.getElementById("topheader").style.height = "50px";
-            document.getElementById("buttonbox").style.top = "-9px";//no i don't know freaking why
-            document.getElementById("headerimg").style.height="50px"
-            //is it even worth making a loop here
-            for(var i=1;i<5;i++){
-                document.getElementById("button"+i).style.height = "36px";
-                document.getElementById("button"+i).style.paddingTop = "0px";
-                document.getElementById("button"+i).style.top = "11px";
-                document.getElementById("button"+i).style.borderRadius = "20px";
-            }//i guess so
-        }else{//oh lord help me this is going on an live site soon
-            //if not scrolled down
-            document.getElementById("topheader").style.fontSize = "100%";
-            document.getElementById("button1").style.paddingTop = "15px";
-            document.getElementById("topheader").style.height = "95px";
-            document.getElementById("buttonbox").style.top = "0px";
-            document.getElementById("headerimg").style.height="95px"
-            for(var i=1;i<5;i++){
-                document.getElementById("button"+i).style.height = "50px";
-                document.getElementById("button"+i).style.paddingTop = "15px";
-                document.getElementById("button"+i).style.top = "10px";
-                document.getElementById("button"+i).style.borderRadius = "25px";
-            }
-        }
-    }//christ thats ugly but it works
-</script>
