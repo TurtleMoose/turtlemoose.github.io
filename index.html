@@ -3,25 +3,29 @@
     <head>
         <title>Franklin IT</title>
         <!--goofy ah icons-->
-        <link rel="shortcut icon" href="imgs/favicon.png"/>
-        <link rel="shortcut icon" href="imgs/favicon.ico"/>
+        <link rel="shortcut icon" href="imgs/fav/favicon.png"/>
+        <link rel="shortcut icon" href="imgs/fav/favicon.ico"/>
     </head>
-    <div id="bg"class="bg"></div>
     <div id="edgeL"class="edge"></div>
-    <div id="edgeR"class="edge"style="left:98%;"></div>
+    <div id="edgeR"class="edge"style="left:98.5%;"></div>
     <body style="font-family:arial;font-weight:bold;">
         <div id="header"class="header">
-            <img src="imgs/FranklinITnoslogan.png"id="headerimg"onClick="location.href = 'https://yourmodernproblems.com/'"style="transition:0.2s;height:50px;left:3%;position:fixed;">
+            <img src="imgs/light/noslogan.png"id="headerimg"onClick="location.href = 'https://yourmodernproblems.com/'"
+                style="transition:0.2s;height:80px;left:2.25%;position:fixed;">
             <div id="buttonbox"style="left:39%;width:60%;position:fixed;"><!--button box, also known as absolute BS-->
-                <div id="button1"class="headbutton"onClick="location.href = 'https://yourmodernproblems.com/buy/';">SELLING</div>
+                <div id="button1"class="headbutton"onClick="location.href = 'https://yourmodernproblems.com/buy/';">BUY</div>
                 <div id="button2"class="headbutton"onClick="location.href = 'https://yourmodernproblems.com/build/';">BUILD</div>
-                <div id="button3"class="headbutton"onClick="location.href = 'https://yourmodernproblems.com/repair/';">REPAIRS</div>
+                <div id="button3"class="headbutton"onClick="location.href = 'https://yourmodernproblems.com/repair/';">REPAIR</div>
                 <div id="button4"class="headbutton"onClick="location.href = 'https://yourmodernproblems.com/about/';">ABOUT</div>
             </div>
         </div>
-        <img id="darkbutton"class="darkbutton"src="imgs/light.png"onclick="makeitdark();">
+        <div id="bg"class="bg">
+            <img src="imgs/mainhome.png" style="padding-top:60px;width:100%;">
+            <div id="badidea1"style="position:relative;top:-160px;font-size:70px;"><mark>Modern Problems</mark></div>
+            <div id="badidea2"style="position:relative;top:-170px;font-size:70px;"><mark>Require Modern Solutions</mark></div>
+        </div>
+        <img id="darkbutton"class="darkbutton"src="imgs/light/light.png"onclick="makeitdark();">
         <div class="headbutton"style="top:1000px;">REMOVE ME</div>
     </body>
 </html>
 <script src="main.js"></script>
-<!--Blue:#2414D9 Yellow:#99FF00-->
