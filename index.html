@@ -10,7 +10,9 @@
     <div id="edgeR"class="edge"style="left:98.5%;"></div>
     <body style="font-family:arial;font-weight:bold;">
         <div id="header"class="header">
-            <img src="imgs/light/noslogan.png"id="headerimg"onClick="location.href = 'https://yourmodernproblems.com/'"
+            <img src="imgs/light/noslogan.png"id="headerimglight"onClick="location.href = 'https://yourmodernproblems.com/'"
+                style="transition:0.2s;height:80px;left:2.25%;position:fixed;">
+            <img src="imgs/dark/nosloganDark.png"id="headerimgdark"onClick="location.href = 'https://yourmodernproblems.com/'"
                 style="transition:0.2s;height:80px;left:2.25%;position:fixed;">
             <div id="buttonbox"style="left:39%;width:60%;position:fixed;"><!--button box, also known as absolute BS-->
                 <div id="button1"class="headbutton"onClick="location.href = 'https://yourmodernproblems.com/buy/';">BUY</div>
@@ -20,12 +22,19 @@
             </div>
         </div>
         <div id="bg"class="bg">
-            <img src="imgs/mainhome.png" style="padding-top:60px;width:100%;">
-            <div id="badidea1"style="position:relative;top:-160px;font-size:70px;"><mark>Modern Problems</mark></div>
-            <div id="badidea2"style="position:relative;top:-170px;font-size:70px;"><mark>Require Modern Solutions</mark></div>
+            <img id="mainimg"src="imgs/mainhome.png" style="padding-top:0px;width:100%;">
+            <div id="badidea1"style="z-index:10;position:relative;top:-160px;font-size:70px;"><mark>Modern Problems</mark></div>
+            <div id="badidea2"style="z-index:10;position:relative;top:-170px;font-size:70px;"><mark>Require Modern Solutions.</mark></div>
+            <div id="bibase"style="z-index:9;transition:0.2s;position:relative;top:-180px;height:25px;width:100%;background-color:white;"></div>
+            <div id="badidea3"style="z-index:10;position:relative;top:-180px;font-size:30px;"><mark style="border-top-right-radius:0px;border-bottom-right-radius:15px;">And we're here to provide them.</mark></div>
         </div>
         <img id="darkbutton"class="darkbutton"src="imgs/light/light.png"onclick="makeitdark();">
-        <div class="headbutton"style="top:1000px;">REMOVE ME</div>
     </body>
+    <noscript><!--This shows if JS is disabled. Easy fix because the entire bloody site relies on it for now-->
+        <div style="width:100%;height:100%;color:#B8B8B8;top:0;left:0;z-index:101;position:fixed;background-color:#242424;">
+            <div style="width:100%;top:30%;position:fixed;text-align:center;font-size:30px;">You have disabled Javascript in your browser. Please reenable it to view our site properly.</div>
+            <div style="width:100%;top:90%;position:fixed;text-align:center;font-size:15px;">2024 Franklin IT</div>
+        </div>
+    </noscript>
 </html>
 <script src="main.js"></script>
