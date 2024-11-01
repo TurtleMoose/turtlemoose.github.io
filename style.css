@@ -15,6 +15,7 @@ div.header {
     position: fixed;
     transition:0.20s;
     z-index: 2;
+    border-bottom:5px solid #99FF00;
 }
 .headbutton{
     background-color:rgb(0,0,0,0);
@@ -52,14 +53,15 @@ div.bottomtext{
     width:1.5%;
     top:0;
     position:fixed;
-    background-color:white;
+    background-color:#2414D9;
     transition:0.2s;
 }
 .darkbutton{
-    width:4%;
+    width:55px;
+    height:55px;
     border-radius:50%;
-    left:95%;
-    top:90%;
+    right:0.7%;
+    bottom:1%;
     z-index:99;
     position:fixed;
     background-color:#CCCCCC;
@@ -77,4 +79,38 @@ mark{
     border:5px solid #242424;
     color:#B8B8B8;
     transition:0.2s;
+}
+.productshelf{
+    width:55%;
+    left:2%;
+    position:relative;
+    background-color:#2414D9;
+    top:-160px;
+    border-radius:15px;
+}
+.productdrawer{
+    position:relative;
+}
+.productimg{
+    width:46%;
+    margin:10px;
+    position:relative;
+    border-radius:18px;
+    border:5px solid #99FF00;
+}
+.productdesc{
+    position:absolute;
+    left:50%;
+    margin:10px;
+    border:5px solid #241424;
+    width:44.5%;
+    top:0;
+    padding:5px;
+    font-size:110%;
+    border-radius:18px;
+    color:#B8B8B8;
+    background-color:#241424;
+}
+pt{
+    font-size:140%;
 }
