@@ -1,11 +1,3 @@
-<!--
-Client ID
-1042823691233-f8jpdg1bvkshddtnmgae9j1ahgrmsk0a.apps.googleusercontent.com
-API Key
-AIzaSyA65nKT0N5h7fkQWFz8aDA4wt2z6-foksM
-Sheet ID
-1mJPO-Wcj96_yK8IYndb3ERqJ1vqZUIv5tRT-RMlIfaw
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,11 +9,11 @@ Sheet ID
     <script>
         let gapiLoaded = false;
         let isSignedIn = false;
-        let sheetId = '1mJPO-Wcj96_yK8IYndb3ERqJ1vqZUIv5tRT-RMlIfaw'; // Change this to your Google Sheet ID
+        let sheetId = 'your-sheet-id'; // Replace with your Google Sheet ID
 
-        // Client ID from Google API console
-        const CLIENT_ID = '1042823691233-f8jpdg1bvkshddtnmgae9j1ahgrmsk0a.apps.googleusercontent.com';
-        const API_KEY = 'AIzaSyA65nKT0N5h7fkQWFz8aDA4wt2z6-foksM'; // Optional if you're not using OAuth
+        // Replace with your client ID
+        const CLIENT_ID = 'your-client-id.apps.googleusercontent.com';
+        const API_KEY = 'your-api-key'; // Optional if you're not using OAuth
         const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
         const DISCOVERY_DOCS = ['https://sheets.googleapis.com/$discovery/rest?version=v4'];
 
@@ -34,6 +26,8 @@ Sheet ID
             }).then(function() {
                 gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
                 updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+            }).catch(function(error) {
+                console.log("Error initializing gapi client", error);
             });
         }
 
@@ -52,19 +46,27 @@ Sheet ID
         }
 
         function handleSignInClick(event) {
-            gapi.auth2.getAuthInstance().signIn();
+            gapi.auth2.getAuthInstance().signIn().then(function() {
+                console.log('Signed in successfully!');
+            }).catch(function(error) {
+                console.log('Sign-in error: ', error);
+            });
         }
 
         function handleSignOutClick(event) {
-            gapi.auth2.getAuthInstance().signOut();
+            gapi.auth2.getAuthInstance().signOut().then(function() {
+                console.log('Signed out successfully!');
+            }).catch(function(error) {
+                console.log('Sign-out error: ', error);
+            });
         }
 
         function readData() {
             if (!gapiLoaded || !isSignedIn) {
-                // alert('You must sign in first!');
-                // return;
+                alert('You must sign in first!');
+                return;
             }
-            const range = 'Sheet1!A1:B10'; // Adjust range based on your sheet
+            const range = 'Sheet1!A1:B10'; // Example range
             gapi.client.sheets.spreadsheets.values.get({
                 spreadsheetId: sheetId,
                 range: range,
@@ -76,13 +78,15 @@ Sheet ID
                 } else {
                     alert('No data found.');
                 }
+            }).catch(function(error) {
+                console.error('Error reading data:', error);
             });
         }
 
         function writeData() {
             if (!gapiLoaded || !isSignedIn) {
-               // alert('You must sign in first!');
-                //return;
+                alert('You must sign in first!');
+                return;
             }
             const values = [
                 ['Hello', 'World'], // Example data to write
@@ -93,13 +97,13 @@ Sheet ID
             };
             gapi.client.sheets.spreadsheets.values.update({
                 spreadsheetId: sheetId,
-                range: 'Sheet1!A1', // Update this range based on where you want to write
+                range: 'Sheet1!A1', // Update this range
                 valueInputOption: 'RAW',
                 resource: body,
             }).then(function(response) {
                 alert('Data written successfully!');
-            }, function(error) {
-                alert('Error writing data: ' + error.message);
+            }).catch(function(error) {
+                console.error('Error writing data:', error);
             });
         }
 
