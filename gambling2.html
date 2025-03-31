@@ -61,8 +61,8 @@ Sheet ID
 
         function readData() {
             if (!gapiLoaded || !isSignedIn) {
-                alert('You must sign in first!');
-                return;
+                // alert('You must sign in first!');
+                // return;
             }
             const range = 'Sheet1!A1:B10'; // Adjust range based on your sheet
             gapi.client.sheets.spreadsheets.values.get({
