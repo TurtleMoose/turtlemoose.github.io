@@ -1,3 +1,11 @@
+<!--
+Client ID
+1042823691233-f8jpdg1bvkshddtnmgae9j1ahgrmsk0a.apps.googleusercontent.com
+API Key
+AIzaSyA65nKT0N5h7fkQWFz8aDA4wt2z6-foksM
+Sheet ID
+1mJPO-Wcj96_yK8IYndb3ERqJ1vqZUIv5tRT-RMlIfaw
+-->
 <!DOCTYPE html>
 <html>
   <head>
@@ -116,7 +124,7 @@
         }
       }
 
-      /**
+      /**https://content-sheets.googleapis.com/v4/spreadsheets/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/values/Class%20Data!A2%3AE?key=AIzaSyA65nKT0N5h7fkQWFz8aDA4wt2z6-foksM
        * Print the names and majors of students in a sample spreadsheet:
        * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
        */
@@ -125,7 +133,7 @@
         try {
           // Fetch first 10 files
           response = await gapi.client.sheets.spreadsheets.values.get({
-            spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
+            spreadsheetId: '1mJPO-Wcj96_yK8IYndb3ERqJ1vqZUIv5tRT-RMlIfaw',
             range: 'Class Data!A2:E',
           });
         } catch (err) {
