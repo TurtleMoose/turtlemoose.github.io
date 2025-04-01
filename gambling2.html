@@ -164,9 +164,7 @@ Sheet ID
                 if(document.getElementById('authorize_button').innerText == 'Refresh'){
                     //handleAuthClick();
                     let textgrab = getTextContent("https://content-sheets.googleapis.com/v4/spreadsheets/1mJPO-Wcj96_yK8IYndb3ERqJ1vqZUIv5tRT-RMlIfaw/values/Sheet1!A2%3AE?key=AIzaSyA65nKT0N5h7fkQWFz8aDA4wt2z6-foksM");
-                        const output = textgrab.reduce(
-                        (str, row) => `${str}${row[0]},${row[1]},${row[2]},${row[3]},${row[4]}\n`,
-                        'Data:\n');
+                        const output = formatData(textgrab);
                     document.getElementById('content').innerText = output;
                 }
 
@@ -183,6 +181,9 @@ Sheet ID
                     result = xmlhttp.responseText;
                 }
                 return result;
+            }
+            function formatData(data){
+                return data;
             }
         </script>
         <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
