@@ -101,7 +101,7 @@ Sheet ID
                     if (resp.error !== undefined) {
                         throw (resp);
                     }
-                    // ACCESS_TOKEN = resp.access_token
+                    ACCESS_TOKEN = resp.access_token
                     document.getElementById('signout_button').style.visibility = 'visible';
                     document.getElementById('authorize_button').innerText = 'Refresh';
                     await getData();
@@ -156,7 +156,7 @@ Sheet ID
                 const output = range.values.reduce(
                     (str, row) => `${str}${row[0]}, ${row[4]}\n`,
                     'Name, Major:\n');
-                document.getElementById('content').innerText = output;
+                document.getElementById('content').innerText = getTextContent("https://www.googleapis.com/oauth2/v1/tokeninfo?access_token="+ACCESS_TOKEN)//output;
             }
             function getTextContent(link) {
                 var result = null;
