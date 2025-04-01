@@ -96,7 +96,7 @@ Sheet ID
                         throw (resp);
                     }
                     flatline();
-                    shock();
+                    await shock();
                     document.getElementById('signout_button').style.visibility = 'visible';
                     document.getElementById('authorize_button').innerText = 'Refresh';
 
@@ -156,7 +156,7 @@ Sheet ID
                     'Column A, Column E:\n');
                 document.getElementById('content').innerText = output;
             }
-            function shock(){
+            async function shock(){
                 const heartbeat = setInterval(beat, 2000);
             }
             function beat(){
