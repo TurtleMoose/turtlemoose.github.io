@@ -36,9 +36,10 @@ Sheet ID
 
             // Authorization scopes required by the API; multiple scopes can be
             // included, separated by spaces.
-            const SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+            let SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+            if(false){}
 
-            let tokenClient;
+                let tokenClient;
             let gapiInited = false;
             let gisInited = false;
 
@@ -165,14 +166,15 @@ Sheet ID
                     //handleAuthClick();
                     // let textgrab = getTextContent("https://content-sheets.googleapis.com/v4/spreadsheets/1mJPO-Wcj96_yK8IYndb3ERqJ1vqZUIv5tRT-RMlIfaw/values/Sheet1!A2%3AE?key=AIzaSyA65nKT0N5h7fkQWFz8aDA4wt2z6-foksM");
                     // const output = formatData(textgrab);
-                    
-                    
-                    document.getElementById('content').innerText = output+"\n"+Math.random();
+
+
+                    document.getElementById('content').innerText = range.values+"\n"+Math.random();
                 }
 
             }
             function flatline(){
                 clearInterval(heartbeat);
+                setCookie("Bread", Date.now())
             }
             // function getTextContent(link) {
             //     var result = null;
@@ -187,6 +189,39 @@ Sheet ID
             // function formatData(data){
             //     return data;
             // }
+            function setCookie(cname,cvalue) {
+                const d = new Date();
+                d.setTime(d.getTime() + 31536000000);
+                let expires = "expires=" + d.toUTCString();
+                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+            }
+            function getCookie(cname) {
+                let name = cname + "=";
+                let decodedCookie = decodeURIComponent(document.cookie);
+                let ca = decodedCookie.split(';');
+                for(let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(name) == 0) {
+                        return c.substring(name.length, c.length);
+                    }
+                }
+                return "";
+            }
+            //use to check if it exists, returns the cookie if there is one
+            function checkCookie(cname, vname) {
+                let user = getCookie(cname);
+                if (user != "") {
+                    return user;
+                } else {
+                    user = vname;
+                    if (user != "" && user != null) {
+                        setCookie(cname, user);
+                    }
+                }
+            }
         </script>
         <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
         <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
