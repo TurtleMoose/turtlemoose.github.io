@@ -101,6 +101,7 @@ Sheet ID
                     if (resp.error !== undefined) {
                         throw (resp);
                     }
+                    // ACCESS_TOKEN = resp.access_token
                     document.getElementById('signout_button').style.visibility = 'visible';
                     document.getElementById('authorize_button').innerText = 'Refresh';
                     await getData();
