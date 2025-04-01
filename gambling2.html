@@ -95,12 +95,13 @@ Sheet ID
                     if (resp.error !== undefined) {
                         throw (resp);
                     }
-                    flatline();
-                    await shock();
+                    if(document.getElementById('authorize_button').innerText == 'Refresh'){
+                        shock();
+                    }
                     document.getElementById('signout_button').style.visibility = 'visible';
                     document.getElementById('authorize_button').innerText = 'Refresh';
 
-                    await listMajors();
+                    await getData();
                 };
 
                 if (gapi.client.getToken() === null) {
@@ -132,7 +133,7 @@ Sheet ID
        * Print the names and majors of students in a sample spreadsheet:
        * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
        */
-            async function listMajors() {
+            async function getData() {
                 let response;
                 try {
                     // Fetch first 10 files
@@ -154,9 +155,9 @@ Sheet ID
                 const output = range.values.reduce(
                     (str, row) => `${str}${row[0]},${row[1]},${row[2]},${row[3]},${row[4]}\n`,
                     'Column A, Column E:\n');
-                document.getElementById('content').innerText = output;
+                document.getElementById('content').innerText = range//output;
             }
-            async function shock(){
+            function shock(){
                 const heartbeat = setInterval(beat, 2000);
             }
             function beat(){
@@ -166,7 +167,7 @@ Sheet ID
                     // const output = formatData(textgrab);
                     
                     
-                    document.getElementById('content').innerText = output;
+                    document.getElementById('content').innerText = output+"\n"+Math.random();
                 }
 
             }
