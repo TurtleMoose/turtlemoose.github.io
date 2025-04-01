@@ -100,7 +100,7 @@ Sheet ID
                     }
                     document.getElementById('signout_button').style.visibility = 'visible';
                     document.getElementById('authorize_button').innerText = 'Refresh';
-                    
+
                     await listMajors();
                 };
 
@@ -162,11 +162,27 @@ Sheet ID
             }
             function beat(){
                 if(document.getElementById('authorize_button').innerText == 'Refresh'){
-                    handleAuthClick();
+                    //handleAuthClick();
+                    let textgrab = getTextContent("https://content-sheets.googleapis.com/v4/spreadsheets/1mJPO-Wcj96_yK8IYndb3ERqJ1vqZUIv5tRT-RMlIfaw/values/Sheet1!A2%3AE?key=AIzaSyA65nKT0N5h7fkQWFz8aDA4wt2z6-foksM");
+                        const output = textgrab.reduce(
+                        (str, row) => `${str}${row[0]},${row[1]},${row[2]},${row[3]},${row[4]}\n`,
+                        'Data:\n');
+                    document.getElementById('content').innerText = output;
                 }
+
             }
             function flatline(){
                 clearInterval(heartbeat);
+            }
+            function getTextContent(link) {
+                var result = null;
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.open("GET", link, false);
+                xmlhttp.send();
+                if (xmlhttp.status==200) {
+                    result = xmlhttp.responseText;
+                }
+                return result;
             }
         </script>
         <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
