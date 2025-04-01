@@ -95,9 +95,8 @@ Sheet ID
                     if (resp.error !== undefined) {
                         throw (resp);
                     }
-                    if(document.getElementById('authorize_button').innerText == 'Authorize'){
-                        shock();
-                    }
+                    flatline();
+                    shock();
                     document.getElementById('signout_button').style.visibility = 'visible';
                     document.getElementById('authorize_button').innerText = 'Refresh';
 
