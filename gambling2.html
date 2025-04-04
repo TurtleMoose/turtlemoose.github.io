@@ -107,7 +107,7 @@ Sheet ID
                             permissions: ["drive.files.get", "drive.files.update"]
                         }
                     }).then(response => {
-                        if(response.result.permissions && (response.result.permissions.includes("drive.files.get")||response.result.permissions.includes("drive.files.update"))){
+                        if(response.result.permissions && response.result.permissions.includes("drive.files.get") && response.result.permissions.includes("drive.files.update")){
                             SCOPES = "";
                         }
                     });
