@@ -99,7 +99,11 @@ Sheet ID
                         throw (resp);
                     }
                     ACCESS_TOKEN = resp.access_token;
-                    gapi.client.request({
+                    document.getElementById('signout_button').style.visibility = 'visible';
+                    document.getElementById('authorize_button').innerText = 'Refresh';
+                    await getData();
+                };
+                gapi.client.request({
                         path: `https://cloudresourcemanager.googleapis.com/v1/projects/gamblingdatabase-455413:testIamPermissions`,
                         headers: {"Authorization": "Bearer "+ACCESS_TOKEN},
                         method: 'POST',
@@ -111,12 +115,7 @@ Sheet ID
                             SCOPES = "";
                         }
                     });
-                    document.getElementById('signout_button').style.visibility = 'visible';
-                    document.getElementById('authorize_button').innerText = 'Refresh';
-                    await getData();
-                };
-
-                if (SCOPES == ""){//gapi.client.getToken() === null) {
+                if (SCOPES != ""){//gapi.client.getToken() === null) {
                     // Prompt the user to select a Google Account and ask for consent to share their data
                     // when establishing a new session.
                     tokenClient.requestAccessToken({prompt: 'consent'});
