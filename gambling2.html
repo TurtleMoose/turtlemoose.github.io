@@ -37,7 +37,7 @@ Sheet ID
 
             // Authorization scopes required by the API; multiple scopes can be
             // included, separated by spaces.
-            let SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+            let SCOPES = 'https://www.googleapis.com/auth/spreadsheets '/*https://www.googleapis.com/auth/cloudfunctions'*/;
 
             let ACCESS_TOKEN;
 
@@ -101,6 +101,7 @@ Sheet ID
                     ACCESS_TOKEN = resp.access_token;
                     gapi.client.request({
                         path: `https://cloudresourcemanager.googleapis.com/v1/projects/gamblingdatabase-455413:testIamPermissions`,
+                        headers: {"Authorization": "Bearer "+ACCESS_TOKEN},
                         method: 'POST',
                         body: {
                             permissions: ["drive.files.get", "drive.files.update"]
