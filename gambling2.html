@@ -38,9 +38,17 @@ Sheet ID
             // Authorization scopes required by the API; multiple scopes can be
             // included, separated by spaces.
             let SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
-            if(false/*check if scope already allowed*/){
-                SCOPES = "";
-            }
+            gapi.client.request({
+                path: `https://cloudresourcemanager.googleapis.com/v1/projects/gamblingdatabase-455413:testIamPermissions`,
+                method: 'POST',
+                body: {
+                    permissions: ["drive.files.get", "drive.files.update"]
+                }
+            }).then(response => {
+                if(response.result.permissions && (response.result.permissions.includes("drive.files.get")||response.result.permissions.includes("drive.files.update"))){
+                    SCOPES = "";
+                }
+            });
 
             let ACCESS_TOKEN;
 
