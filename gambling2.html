@@ -103,20 +103,18 @@ Sheet ID
                     document.getElementById('authorize_button').innerText = 'Refresh';
                     await getData();
                 };
-                if(gapi.auth2.getAuthInstance().isSignedIn.get()){
-                    gapi.client.request({
-                        path: `https://cloudresourcemanager.googleapis.com/v1/projects/gamblingdatabase-455413:testIamPermissions`,
-                        headers: {"Authorization": "Bearer "+ACCESS_TOKEN},
-                        method: 'POST',
-                        body: {
-                            permissions: ["drive.files.get", "drive.files.update"]
-                        }
-                    }).then(response => {
-                        if(response.result.permissions && response.result.permissions.includes("drive.files.get") && response.result.permissions.includes("drive.files.update")){
-                            SCOPES = "";
-                        }
-                    });
-                }
+                gapi.client.request({
+                    path: `https://cloudresourcemanager.googleapis.com/v1/projects/gamblingdatabase-455413:testIamPermissions`,
+                    headers: {"Authorization": "Bearer "+ACCESS_TOKEN},
+                    method: 'POST',
+                    body: {
+                        permissions: ["drive.files.get", "drive.files.update"]
+                    }
+                }).then(response => {
+                    if(response.result.permissions && response.result.permissions.includes("drive.files.get") && response.result.permissions.includes("drive.files.update")){
+                        SCOPES = "";
+                    }
+                });
                 if (SCOPES != ""){//gapi.client.getToken() === null) {
                     // Prompt the user to select a Google Account and ask for consent to share their data
                     // when establishing a new session.
