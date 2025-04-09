@@ -8,7 +8,7 @@
 </html>
 <script>
     //change this for whoever is running
-    let candidates = ["John - Independent", "Felix - YAPPERS", "Noah - WELP", "Lennon - YAPPERS" , "Gabe - Party Pending"];
+    let candidates = ["John - Independent", "Noah - Weirdos Equal Libertarian Party (WELP)", "Lennon - Yeehaw Anarchial Presidential Party And Realistic Supporters (YAPPARS)", "Gabe - "];
     for(var i=0;i<candidates.length;i++){
         let div = document.createElement("div")
         div.classList.add("candidate");
@@ -21,7 +21,7 @@
     }
     function reload(){
         let votes = new Array(candidates.length).fill(0);
-        let info = getSource("https://content-sheets.googleapis.com/v4/spreadsheets/1yevR7PY_WIuZApxaa5gUEaly3KGfHBjrPfDiojlo9o8/values/Form%20Responses%201!A2%3AF?key=AIzaSyA65nKT0N5h7fkQWFz8aDA4wt2z6-foksM");
+        let info = getSource("https://content-sheets.googleapis.com/v4/spreadsheets/1yevR7PY_WIuZApxaa5gUEaly3KGfHBjrPfDiojlo9o8/values/Form%20Responses%201!A2%3AG?key=AIzaSyA65nKT0N5h7fkQWFz8aDA4wt2z6-foksM");
         //format info
         info = info.split("[")
         info = info.splice(2)
@@ -46,8 +46,8 @@
         const hour = now.getHours();
         let sorted = sort(votes).reverse();
         for(var i=0;i<votes.length;i++){
-            if((day==5&&hour<22)){
-                if((votes[i]==sorted[0]||votes[i]==sorted[1]||votes[i]==sorted[2])&&votes[i]<calcChance(i, sorted, info)&&votes[i]!=sorted[sorted.length-1]){
+            if((day==3&&hour<22)){
+                if((votes[i]==sorted[0]||votes[i]==sorted[1]||votes[i]==sorted[2])&&votes[i]<2*info.length&&votes[i]!=sorted[sorted.length-1]){
                     document.getElementById(i).innerHTML+="<w>Projected Winner</w>"
                 }
             }else{
@@ -62,14 +62,20 @@
     function sort(arr) {
         return [...new Set(arr)].sort((a, b) => b - a);
     }
-    function calcChance(j, list, all){
-        let math = 0;
-        math = 3*13-all.length;
-        return math;
+    function checkDoub(doub, list){
+        let t = 0;
+        for(var i=0;i<list.length;i++){
+            if(list[i]==doub){
+                t++;
+            }
+        }
+        return t;
     }
+        document.getElementById(3).style.letterSpacing = -4
     reload();
     setInterval(()=>{
         reload();
+
     },5000);
     function getSource(link) {
         var result = null;
@@ -95,13 +101,16 @@
     }
     p{
         font-size:25px;
+        letter-spacing:0;
     }
     h{
-        font-size:170px
+        font-size:170px;
+        letter-spacing:0;
     }
     w{
         font-size:30px;
         color:green;
+        letter-spacing:0;
     }
     .t{
         position:absolute;
