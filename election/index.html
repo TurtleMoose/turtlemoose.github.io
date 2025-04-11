@@ -46,7 +46,7 @@
         const hour = now.getHours();
         let sorted = sort(votes).reverse();
         for(var i=0;i<votes.length;i++){
-            if((day==5&&hour<22)){
+            if((day==5&&hour<19)){
                 if((votes[i]==sorted[0]||votes[i]==sorted[1]||votes[i]==sorted[2])&&votes[i]<2*info.length&&votes[i]!=sorted[sorted.length-1]){
                     document.getElementById(i).innerHTML+="<w>Projected Winner</w>"
                 }
