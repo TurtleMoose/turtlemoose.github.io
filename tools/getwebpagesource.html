@@ -1,0 +1,25 @@
+<html>
+    <input type="text" id="input"/>
+    <button onclick="setText(document.getElementById('input').value)">Get Text</button>
+    <div id="output"></div>
+</html>
+<script>
+    document.getElementById("input").addEventListener('keydown',(event)=>{
+        if(event.key == 'Enter'){
+            setText(document.getElementById('input').value)
+        }
+    });
+    function loadFile(filePath) {
+        var result = null;
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.open("GET", filePath, false);
+        xmlhttp.send();
+        if (xmlhttp.status==200) {
+            result = xmlhttp.responseText;
+        }
+        return result;
+    }
+    function setText(link){
+        document.getElementById("output").textContent = loadFile(link);
+    }
+</script>
