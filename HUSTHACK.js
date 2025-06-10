@@ -1,7 +1,7 @@
 // var script = document.createElement('script');
-// script.src = 'https://yourmodernproblems.com/HUSTHACK.js';
+// // script.src = 'https://yourmodernproblems.com/HUSTHACK.js';
 // script.type = 'text/javascript';
-// document.head.appendChild(script);
+// document.body.appendChild(script);
     
     
     
@@ -18,7 +18,6 @@
     .then(module => {
     console.log(module); // Access the module's exports here
     });
-
 
 
 //frqs
@@ -42,12 +41,19 @@
     //     appId: "1:148058024636:web:ce1e8e6bf8ecb04b1e7eb9",
     //    };
 
-
-
+let db;
+setTimeout(() => {
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    db = firebase.firestore();
+},1000);
     
-
+var em = document.createElement('input');
+em.id = "asd"
+document.body.appendChild(em);
+var em2 = document.createElement('button');
+      em2.onclick = 'checkitnow(document.getElementById("asd").value)';
+      em2.innerText = "check"
+document.body.appendChild(em2);
 
 
     window.checkitnow = function (thisa) {
