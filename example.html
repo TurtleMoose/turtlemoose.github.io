@@ -1,0 +1,189 @@
+<html>
+    <body onresize="resizeFOV()" onmousemove="mousePos(event)" onload="paused=false;update();">
+        <canvas style="left:0;top:0;position:fixed;/*cursor:none;*/"id="cnv"></canvas>
+        <div id="p" style="left:0;top:40%;position:fixed;width:100%;height:10%;text-align:center;opacity:0;font-size:40px;font-family:monospace;">paused<br>backtick (`) to resume</div>
+        <div style="position:absolute;left:49.95%;top:49.95%;width:0.1%;height:0.1%;background-color:FFF;"></div>
+        <div id="fps"style="position:absolute;left:0;top:0;">fps</div>
+        <div id="FSW"style="position:absolute;transition:1s;color:FFF;background-color:rgba(0,0,0,0.5);opacity:0;left:40%;top:40;width:20%;text-align:center;">Use Backtick (`) to Enter/Exit Fullscreen</div>
+        <div id="coo"style="position:absolute;left:0;top:20;">coo</div>
+        <div id="tes"style="position:absolute;left:0;top:100;"></div>
+        <div id="ins"style="position:absolute;left:30%;text-align:center;top:0;width:40%;">so basic there's no version<!--WASD to move, arrow keys or mouse rotate, E/Q change fov, 1 for jitter and 2 for shatter, U/I J/K N/M rotate debug--></div>
+    </body>
+</html>
+<script>
+    //Key controls
+    let Key = {
+        //KEYBINDS----------------------------------------------------
+        jump: " ",
+        rotateLeft: "ArrowLeft",
+        rotateRight: "ArrowRight",
+        rotateUp: "ArrowUp",
+        rotateDown: "ArrowDown",
+        crouch: "Control",
+        sprint: "Shift",
+        forward: "w",
+        backward: "s",
+        left: "a",
+        right: "d",
+        fovUp: "e",
+        fovDown: "q",
+        //all keybinds. you can declare other variables for the same keys if you want to make it more readable.
+        //kind of organized in the layout of a keyboard
+        escape: "Escape", f1: "F1", f2: "F2", f3: "F3", f4: "F4", f5: "F5", f6: "F6", f7: "F7", f8: "F8", f9: "F9", f10: "F10", f11: "F11", f12: "F12", scrollLock: "ScrollLock", pause: "Pause", 
+        tilde: "~", exclamation: "!", at: "@", hash: "#", dollar: "$", percent: "%", carrot: "^", and: "&", asterisk: "*", leftParen: "(", rightParen: ")", score: "_", plus: "+",
+        backtick: "`",one: "1", two: "2", three: "3", four: "4", five: "5", six: "6", seven: "7", eight: "8", nine: "9", zero: "0", minus: "-", equals: "=", backspace: "Backspace",
+        insert: "Insert", home: "Home", pageup: "PageUp", delete: "Delete", end: "End", pagedown: "PageDown", numLock: "NumLock",
+        tab: "Tab", q: "q", w: "w", e: "e", r: "r", t: "t", y: "y", u: "u", i: "i", o: "o", p: "p", leftSquare: "[", rightSquare: "]", leftBracket: "{", rightBracket: "}",
+        capsLock: "CapsLock", a: "a", s: "s", d: "d", f: "f", g: "g", h: "h", j: "j", k: "k", l: "l", semicolon: ";", colon: ":", singleQuote: "'", doubleQuote: "\"", bar: "|", backslash: "\\", enter: "Enter",
+        shift: "Shift", z: "z", x: "x", c: "c", v: "v", b: "b", n: "n", m: "m", comma: ",", period: ".",  leftCarrot: "<", rightCarrot: ">", slash: "/", question: "?",
+        control: "Control", meta: "Meta", alt: "Alt", space: " ", menu: "ContextMenu", arrowLeft: "ArrowLeft", arrowRight: "ArrowRight", arrowUp: "ArrowUp", arrowDown: "ArrowDown",
+        //END KEYBINDS------------------------------------------------
+        //the rest of these stay.
+        pressed: {},
+        isDown: function (key){return this.pressed[key.toLowerCase()];},
+        keydown: function (event){this.pressed[event.key.toLowerCase()] = true;},
+        keyup: function (event){delete this.pressed[event.key.toLowerCase()];}
+    }
+    window.addEventListener("keyup", function(event) {Key.keyup(event);});
+    window.addEventListener("keydown", function(event) {Key.keydown(event);});
+    //disables context menu on right click
+    window.addEventListener("contextmenu", e => e.preventDefault());
+    //button things
+    let Mouse = {
+        left: false,
+        middle: false,
+        right: false,
+        x: 0,
+        y: 0
+    }
+    document.addEventListener('mousedown', function(event) {
+        if (event.button === 0) { // left button
+            Mouse.left = true;
+        }else{
+            Mouse.left = false;
+        }
+        if (event.button === 1) { // Middle button
+            Mouse.middle = true;
+        }else{
+            Mouse.middle = false;
+        }
+        if (event.button === 2) { // Right button
+            event.preventDefault();
+            Mouse.right = true;
+        }else{
+            Mouse.right = false;
+        }
+    });
+    document.addEventListener('mouseup', function(event) {
+        if (event.button === 0) { // left button
+            Mouse.left = false;
+        }
+        if (event.button === 1) { // Middle button
+            Mouse.middle = false;
+        }
+        if (event.button === 2) { // Right button
+            event.preventDefault();
+            Mouse.right = false;
+        }
+    });
+</script>
+<script src="3dwalking.js">
+</script>
+<script>
+    document.addEventListener(
+        "keydown",
+        (e) => {
+            if ((e.key === "Escape" && !paused) || e.key === "`") {
+                //  toggleFullScreen();
+                if(keysormouse){
+                    togglePointerLock();
+                }
+                if(paused){
+                    paused = false;
+                    update();
+                }else{
+                    paused = true;
+                    pause();
+                }
+            }
+            if(!paused&&!document.pointerLockElement&&keysormouse){
+                document.documentElement.requestPointerLock();
+            }
+        },
+        false,
+    );
+    document.addEventListener(
+        "pointerlockchange",
+        (e) => {
+            if(!document.pointerLockElement){
+                paused = true;
+                pause();
+            }
+        },
+        false,
+    );
+    function togglePointerLock(){
+        if(document.pointerLockElement==null) {
+            document.documentElement.requestPointerLock();
+        }else{
+            document.exitPointerLock();
+        }
+    }
+    function toggleFullScreen(){
+        if(!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        }else if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+        document.getElementById("FSW").style.opacity = 0.9;
+        setTimeout(()=>{document.getElementById("FSW").style.opacity = 0;},2000);
+    }
+    //Build boxes below here
+    //const [object name] = new box(centerx, centery, centerz, width, height, depth, color, corporeal, withplayer)
+    const box0 = new box(0.5,1,-4,0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+    const box1 = new box(0,1.5,-4,0.5,0.5,0.5,0,0,0,"rgba(255,250,0,1)",1,0);
+    const box2 = new box(0,0.5,-4,0.5,0.5,0.5,0,0,0,"rgba(255,0,100,1)",1,0);
+    const box3 = new box(-.5,0,-4,0.5,.5,0.5,0,0,0,"rgba(255,0,250,1)",1,0);
+    const box4 = new box(0.5,0,-4,0.5,0.5,0.5,0,0,0,"rgba(255,100,100,1)",1,0);
+    const box5 = new box(0.5,-0.5,-4,0.5,0.5,0.5,0,0,0,"rgba(2,100,100,1)",1,0);
+    const box6 = new box(-.5,-0.5,-4,0.5,0.5,0.5,0,0,0,"rgba(25,10,100,0.1)",1,0);
+    const box7 = new box(-.5,1,-4,0.5,0.5,0.5,0,0,0,"rgba(2,10,0,0.1)",1,0);//TODO: somethings up with z-buffering again. fix it.
+    const box8 = new box(0.5,0.5,-4,0.5,0.5,0.5,0,0,0,"rgba(255,255,200,0.5)",1,0);//idiot I don't know what was wrong now you moron
+    const box9 = new box(0.5,1.5,-4,0.5,0.5,0.5,0,0,0,"rgba(100,100,100,1)",1,0);
+    const boxA = new box(-.5,1.5,-4,0.5,0.5,0.5,0,0,0,"rgba(0,0,255,1)",1,0);
+    
+    new box(0.5,1,4,0.5,0.5,0.5,0,0,0,"green",1,0);
+    new box(0,1.5,4,0.5,0.5,0.5,0,0,0,"green",1,0);
+    new box(0,0.5,4,0.5,0.5,0.5,0,0,0,"green",1,0);
+    new box(-.5,0,4,0.5,.5,0.5,0,0,0,"green",1,0);
+    new box(0.5,0,4,0.5,0.5,0.5,0,0,0,"green",1,0);
+    new box(0.5,-0.5,4,0.5,0.5,0.5,0,0,0,"green",1,0);
+    new box(-.5,-0.5,4,0.5,0.5,0.5,0,0,0,"green",1,0);
+    new box(-.5,1,4,0.5,0.5,0.5,0,0,0,"green",1,0);
+    new box(0.5,0.5,4,0.5,0.5,0.5,0,0,0,"green",1,0);
+    new box(0.5,1.5,4,0.5,0.5,0.5,0,0,0,"green",1,0);
+    new box(-.5,1.5,4,0.5,0.5,0.5,0,0,0,"green",1,0);
+
+    new box(-5,0,4,0.1,  1,0.1,0,0,0,"yellow",1,0);
+    new box(-5,0,4,  1,0.1,0.1,0,0,0,"red",1,0);
+    new box(-5,0,4,0.1,0.1,  1,0,0,0,"blue",1,0);
+
+   const vertices = [0.0000, 0.0000, 0.0000, 0.1991, -0.0095, 0.0000, 0.1882, -0.0049, 0.0504, 0.1848, 0.0082, 0.1067, 0.1541, 0.0018, 0.1541, 0.0983, -0.0052, 0.1702, 0.0547, -0.0025, 0.2042, 0.0000, 0.0020, 0.2066, -0.0542, 0.0018, 0.2022, -0.1039, 0.0039, 0.1800, -0.1508, -0.0085, 0.1508, -0.1661, -0.0083, 0.0959, -0.1837, -0.0052, 0.0492, -0.2006, 0.0035, 0.0000, -0.1865, 0.0082, -0.0500, -0.1765, 0.0007, -0.1019, -0.1398, -0.0058, -0.1398, -0.0964, 0.0043, -0.1670, -0.0526, 0.0029, -0.1962, -0.0000, 0.0021, -0.2069, 0.0477, -0.0032, -0.1779, 0.1031, -0.0046, -0.1786, 0.1408, 0.0083, -0.1408, 0.1724, -0.0062, -0.0995, 0.1873, 0.0075, -0.0502, 0.0000, 0.8000, 0.0000, 0.2018, 0.7950, 0.0000, 0.1979, 0.7948, 0.0530, 0.1548, 0.7903, 0.0894, 0.1377, 0.7955, 0.1377, 0.1034, 0.7902, 0.1790, 0.0470, 0.7950, 0.1753, 0.0000, 0.8073, 0.1851, -0.0459, 0.8048, 0.1711, -0.0973, 0.7954, 0.1686, -0.1329, 0.7903, 0.1329, -0.1507, 0.8009, 0.0870, -0.1907, 0.7961, 0.0511, -0.1766, 0.8025, 0.0000, -0.1859, 0.8056, -0.0498, -0.1756, 0.7993, -0.1014, -0.1476, 0.8067, -0.1476, -0.1016, 0.8022, -0.1760, -0.0498, 0.8060, -0.1859, -0.0000, 0.8028, -0.2007, 0.0465, 0.8031, -0.1735, 0.0988, 0.8008, -0.1711, 0.1306, 0.8017, -0.1306, 0.1742, 0.7938, -0.1005, 0.1758, 0.7988, -0.0471, 0.4968, 0.8081, 0.0000, 0.5251, 0.7900, 0.1407, 0.4576, 0.7822, 0.2642, 0.3584, 0.7861, 0.3584, 0.2644, 0.7954, 0.4579, 0.1318, 0.7892, 0.4920, 0.0000, 0.8008, 0.4567, -0.1370, 0.7955, 0.5113, -0.2352, 0.7890, 0.4074, -0.3423, 0.8114, 0.3423, -0.4081, 0.8007, 0.2356, -0.4527, 0.8137, 0.1213, -0.4567, 0.7911, 0.0000, -0.4939, 0.8065, -0.1324, -0.4468, 0.8170, -0.2579, -0.3828, 0.7885, -0.3828, -0.2319, 0.7823, -0.4017, -0.1312, 0.8126, -0.4898, -0.0000, 0.8134, -0.4735, 0.1202, 0.7986, -0.4487, 0.2685, 0.8195, -0.4651, 0.3857, 0.8179, -0.3857, 0.4622, 0.7831, -0.2668, 0.4809, 0.7995, -0.1288, -0.0194, 1.8398, -0.0124];
+
+const triangles = [1, 26, 2, 2, 26, 27, 2, 27, 3, 3, 27, 28, 3, 28, 4, 4, 28, 29, 4, 29, 5, 5, 29, 30, 5, 30, 6, 6, 30, 31, 6, 31, 7, 7, 31, 32, 7, 32, 8, 8, 32, 33, 8, 33, 9, 9, 33, 34, 9, 34, 10, 10, 34, 35, 10, 35, 11, 11, 35, 36, 11, 36, 12, 12, 36, 37, 12, 37, 13, 13, 37, 38, 13, 38, 14, 14, 38, 39, 14, 39, 15, 15, 39, 40, 15, 40, 16, 16, 40, 41, 16, 41, 17, 17, 41, 42, 17, 42, 18, 18, 42, 43, 18, 43, 19, 19, 43, 44, 19, 44, 20, 20, 44, 45, 20, 45, 21, 21, 45, 46, 21, 46, 22, 22, 46, 47, 22, 47, 23, 23, 47, 48, 23, 48, 24, 24, 48, 49, 24, 49, 1, 1, 49, 26, 0, 2, 1, 0, 3, 2, 0, 4, 3, 0, 5, 4, 0, 6, 5, 0, 7, 6, 0, 8, 7, 0, 9, 8, 0, 10, 9, 0, 11, 10, 0, 12, 11, 0, 13, 12, 0, 14, 13, 0, 15, 14, 0, 16, 15, 0, 17, 16, 0, 18, 17, 0, 19, 18, 0, 20, 19, 0, 21, 20, 0, 22, 21, 0, 23, 22, 0, 24, 23, 0, 1, 24, 25, 26, 27, 25, 27, 28, 25, 28, 29, 25, 29, 30, 25, 30, 31, 25, 31, 32, 25, 32, 33, 25, 33, 34, 25, 34, 35, 25, 35, 36, 25, 36, 37, 25, 37, 38, 25, 38, 39, 25, 39, 40, 25, 40, 41, 25, 41, 42, 25, 42, 43, 25, 43, 44, 25, 44, 45, 25, 45, 46, 25, 46, 47, 25, 47, 48, 25, 48, 49, 25, 49, 26, 74, 50, 51, 74, 51, 52, 74, 52, 53, 74, 53, 54, 74, 54, 55, 74, 55, 56, 74, 56, 57, 74, 57, 58, 74, 58, 59, 74, 59, 60, 74, 60, 61, 74, 61, 62, 74, 62, 63, 74, 63, 64, 74, 64, 65, 74, 65, 66, 74, 66, 67, 74, 67, 68, 74, 68, 69, 74, 69, 70, 74, 70, 71, 74, 71, 72, 74, 72, 73, 74, 73, 50, 25, 51, 50, 25, 52, 51, 25, 53, 52, 25, 54, 53, 25, 55, 54, 25, 56, 55, 25, 57, 56, 25, 58, 57, 25, 59, 58, 25, 60, 59, 25, 61, 60, 25, 62, 61, 25, 63, 62, 25, 64, 63, 25, 65, 64, 25, 66, 65, 25, 67, 66, 25, 68, 67, 25, 69, 68, 25, 70, 69, 25, 71, 70, 25, 72, 71, 25, 73, 72, 25, 50, 73];
+
+    loadModelFile("heavy.ply", 0,0,0, "red", 0,0,0);
+    
+    new model(3, 3, 3, triangles, vertices, "red", 0)
+    let blue = new model(0, 0, 2, triangles, vertices, "blue", 0)
+    
+    // massBox(-7.87,0,-88,  0.475,0.25,0.5, 10,1,100, 0,0,0,"rgb(0,100,0)",1,0);
+    const stick = new box(-.4,-0.1,-0.5,0.01,0.4,0.01,-15,-10,0,"brown",1,3);
+    //firstx, firsty, firstz, xdim, ydim, zdim, xval, yval, zval, rotaXY, rotaYZ, rotaXZ, color, corp
+    //Set camera initial position, angle, fov, move speed, and rendering stroke and fill
+    //Currently set to default. Change if needed                                                                                        
+    //initialize(camX, camY, camZ, camAngle, playerSpeed, sprintmod, camSpeed, FOV, background, maxframerate, renderStrokes, renderFill, keysormouse)
+    initialize(0,0.5,0,0,0.1,3,(5*(Math.PI/180)),window.innerHeight,"#9999F9",100,0,1,1);
+    setCamPos(-1,0.5,2)
+    //add interactability below
+</script>
