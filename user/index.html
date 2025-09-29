@@ -1,0 +1,196 @@
+<!--Y'know what? To hell with it. Steal the code if you really want it that bad. (or just ask me)-->
+<html>
+    <body style="font-family:sans-serif">
+        <div id="debugCrap">
+            <input id="name" />
+            <input id="email" />
+            <button onclick='writetobase("users", document.getElementById("name").value, {
+                username: document.getElementById("name").value,
+                email: document.getElementById("email").value,
+                creationDate: Date.now(),
+                perms: {admin: false, verified: false}
+            })'>set</button>
+            <button onclick='readDocument("users", document.getElementById("name").value)'>read</button>
+            <div id="out">not read</div>
+        </div>
+        <div id="login" class="LoginBox">
+            <div id="LoginProblem"></div>
+            <div class="LoginText" style="font-size:25px;">Login</div>
+            <div class="LoginText">Username</div>
+            <input id="LoginName" class="LoginInput"/>
+            <div class="LoginText">Password</div>
+            <input id="LoginPass" class="LoginInput" type="password"/>
+            <button id="ShowPass" 
+                class="ShowPass"        
+                onclick="
+                let tempid=document.getElementById('LoginPass');
+                let tempid2=document.getElementById('ShowPass');
+                /*This is cursed*/
+                if(tempid.type=='password'){
+                    tempid.type='none';
+                    tempid2.innerHTML='Hide';
+                }else{
+                    tempid.type='password';
+                    tempid2.innerHTML='Show';
+                }
+                ">Show</button>
+            <button id="CreateButton" class="LoginButton">Sign Up</button>
+            <button id="LoginButton" class="LoginButton">Login</button>
+        </div>
+
+        <script type="module">
+
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
+            import { getFirestore, collection, doc, setDoc, getDocs, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyDdPY6QHNNQUYXgfbCBfQLdToUlVw846zg",
+                authDomain: "a4sfe3nadfitsd.firebaseapp.com",
+                projectId: "a4sfe3nadfitsd",
+                storageBucket: "a4sfe3nadfitsd.firebasestorage.app",
+                messagingSenderId: "535932596523",
+                appId: "1:535932596523:web:04d8c8727b7613f6dc556e",
+                measurementId: "G-G2PL2T0C85"
+            };
+
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+
+            // Note: this will OVERWRITE any data in the document in Firestore
+            window.writetobase = function (col, docum, mssg) {
+                const theRef = doc(db, col, docum);
+                setDoc(theRef, mssg) // set data in Firestore
+                    .catch((error) => {
+                        document.getElementById("out").innerText = ("Error adding document: "+ error);
+                    });
+                document.getElementById("out").innerText = "written"
+            };
+
+            window.readCollection = async function (col) {
+                try {
+                    const colRef = collection(db, col);
+                    const querySnapshot = await getDocs(colRef);
+                    const outputElement = document.getElementById("out");
+                    outputElement.innerText = ""; // Clear previous output
+
+                    querySnapshot.forEach((doc) => {
+                        outputElement.innerText += `${doc.id}: ${JSON.stringify(doc.data())}\n`;
+                    });
+                } catch (error) {
+                    document.getElementById("out").innerText = "Error reading Firestore: " + error;
+                }
+            };
+            window.readDocument = async function (col, docId) {
+                try {
+                    const docRef = doc(db, col, docId);
+                    const docSnap = await getDoc(docRef);
+                    const outputElement = document.getElementById("out");
+                    outputElement.innerText = ""; // Clear previous output
+
+                    if (docSnap.exists()) {
+                        outputElement.innerText = `${docSnap.id}: ${JSON.stringify(docSnap.data())}`;
+                    } else {
+                        outputElement.innerText = `No document found with ID: ${docId}`;
+                    }
+                } catch (error) {
+                    document.getElementById("out").innerText = "Error reading Firestore: " + error;
+                }
+            };
+
+            // Real-time updates using Firestore (like onValue)
+            window.checkRealTimeUpdates = function (col) {
+                const colRef = collection(db, col);
+                onSnapshot(colRef, (querySnapshot) => {
+                    document.getElementById("out").innerText = "";  // Clear output on update
+                    const list = document.getElementById("out");
+                    querySnapshot.forEach((doc) => {
+                        const li = document.createElement("li");
+                        li.textContent = `${doc.id}: ${JSON.stringify(doc.data())}`;
+                        list.appendChild(li);
+                    });
+                }, (error) => {
+                    document.getElementById("out").innerText = ("Error listening for real-time updates: ", error);
+                });
+            };
+
+            getPathSegments('/user/');
+            function getPathSegments(basePath) {
+                const pathname = window.location.pathname;
+
+                if (!pathname.startsWith(basePath)) {
+                    document.getElementById('out').textContent = (`URL does not start with ${basePath}`);
+                    return [];
+                }
+
+                // Get everything after the basePath
+                const afterBase = pathname.slice(basePath.length);
+
+                // Split by '/' and filter out empty strings
+                const segments = afterBase.split('/').filter(Boolean);
+
+                return segments;
+            }
+        </script>
+    </body>
+</html>
+<style>
+    .LoginBox{
+        position:absolute;
+        width:380px;
+        top:30%;
+        background:#B6B666;
+        border-radius:8px;
+        padding-top:0.3%;
+        border:0 #767676 solid;
+    }
+    .LoginText{
+        padding-left:2%;
+    }
+    .LoginInput{
+        position:relative;
+        left:0%;
+        width:75%;
+        margin-top:1%;
+        margin-bottom:1%;
+        margin-left:3%;
+        background-color:#BBBBBB;
+        border-radius:5px;
+        height:24px;
+        font-size:20px;
+        border:2px #767676 solid;
+    }
+    :hover.LoginInput{
+        background-color:#AAAAAA;
+    }
+    .LoginButton{
+        width:160px;
+        height:40px;
+        margin:14px;
+        position:relative;
+        font-size:20px;
+        background-color:#BBBBBB;
+        border:2px #767676 solid;
+        border-radius:5px;
+    }
+    :hover.LoginButton{
+        background-color:#AAAAAA;
+    }
+    :active.LoginButton{
+        background-color:#BBBBBB;
+    }
+    .ShowPass{
+        border-radius:5px;
+        border:2px #767676 solid;
+        height:30px;
+        top:-1.5px;/*hahahahahahahahaha its not centered*/
+        position:relative;
+        background-color:#BBBBBB;
+    }
+    :hover.ShowPass{
+        background-color:#AAAAAA;
+    }
+    :active.ShowPass{
+        background-color:#BBBBBB;
+    }
+</style>
