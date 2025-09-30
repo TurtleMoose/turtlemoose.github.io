@@ -8,13 +8,14 @@
                 username: document.getElementById("name").value,
                 email: document.getElementById("email").value,
                 creationDate: Date.now(),
+                password: "password",
                 perms: {admin: false, verified: false}
             })'>set</button>
             <button onclick='readDocument("users", document.getElementById("name").value)'>read</button>
             <div id="out">not read</div>
         </div>
         <div id="login" class="LoginBox">
-            <div id="LoginProblem"></div>
+            <div id="LoginProb"></div>
             <div class="LoginText" style="font-size:25px;">Login</div>
             <div class="LoginText">Username</div>
             <input id="LoginName" class="LoginInput"/>
@@ -34,8 +35,8 @@
                     tempid2.innerHTML='Show';
                 }
                 ">Show</button>
-            <button id="CreateButton" class="LoginButton">Sign Up</button>
-            <button id="LoginButton" class="LoginButton">Login</button>
+            <button id="CreateButton" class="LoginButton" onclick="handleSignUp(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)">Sign Up</button>
+            <button id="LoginButton" class="LoginButton" onclick="handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)">Login</button>
         </div>
 
         <script type="module">
@@ -72,11 +73,14 @@
                     const colRef = collection(db, col);
                     const querySnapshot = await getDocs(colRef);
                     const outputElement = document.getElementById("out");
+                    let list = [];
                     outputElement.innerText = ""; // Clear previous output
 
                     querySnapshot.forEach((doc) => {
                         outputElement.innerText += `${doc.id}: ${JSON.stringify(doc.data())}\n`;
+                        list.push(doc);
                     });
+                    return list;
                 } catch (error) {
                     document.getElementById("out").innerText = "Error reading Firestore: " + error;
                 }
@@ -85,13 +89,14 @@
                 try {
                     const docRef = doc(db, col, docId);
                     const docSnap = await getDoc(docRef);
-                    const outputElement = document.getElementById("out");
-                    outputElement.innerText = ""; // Clear previous output
+                    document.getElementById("out").innerText = ""; // TODO: remove all references to element "out"
 
                     if (docSnap.exists()) {
-                        outputElement.innerText = `${docSnap.id}: ${JSON.stringify(docSnap.data())}`;
+                        document.getElementById("out").innerText = `${docSnap.id}: ${JSON.stringify(docSnap.data())}`;
+                        return docSnap;
                     } else {
-                        outputElement.innerText = `No document found with ID: ${docId}`;
+                        document.getElementById("out").innerText = `No document found with ID: ${docId}`;
+                        return false;
                     }
                 } catch (error) {
                     document.getElementById("out").innerText = "Error reading Firestore: " + error;
@@ -102,7 +107,7 @@
             window.checkRealTimeUpdates = function (col) {
                 const colRef = collection(db, col);
                 onSnapshot(colRef, (querySnapshot) => {
-                    document.getElementById("out").innerText = "";  // Clear output on update
+                    document.getElementById("out").innerText = "";
                     const list = document.getElementById("out");
                     querySnapshot.forEach((doc) => {
                         const li = document.createElement("li");
@@ -114,23 +119,99 @@
                 });
             };
 
-            getPathSegments('/user/');
-            function getPathSegments(basePath) {
-                const pathname = window.location.pathname;
-
-                if (!pathname.startsWith(basePath)) {
-                    document.getElementById('out').textContent = (`URL does not start with ${basePath}`);
-                    return [];
+            window.handleLogin = async function (name, pass, c) {
+                if(name==""||pass==""){
+                    if(c){document.getElementById("LoginProb").innerText = "Could not auto log in"}
+                    return;
                 }
-
-                // Get everything after the basePath
-                const afterBase = pathname.slice(basePath.length);
-
-                // Split by '/' and filter out empty strings
-                const segments = afterBase.split('/').filter(Boolean);
-
-                return segments;
+                try{
+                    const docResp = await readDocument("users", name);
+                    if(!docResp||!docResp.data){
+                        document.getElementById("LoginProb").innerText = "Username does not exist";
+                        return;
+                    }
+                    const user = docResp.data();
+                    if(user.username == name && user.password == pass){
+                        console.log(user.password)
+                        document.getElementById("out").innerText = "Logged In";
+                        setCookie("USERNAME",name)
+                        setCookie("PASSWORD",pass)
+                    }else{
+                        document.getElementById("LoginProb").innerText = "Incorrect password";
+                    }
+                }catch(error){
+                    document.getElementById("LoginProb").innerText = "Login error "+ error;
+                }
             }
+
+            window.handleSignUp = function (name, pass){
+                if(false!=readDocument("users", document.getElementById("LoginName").value)){
+                    document.getElementById("LoginProb").innerText = "Username already exists";
+                    return;
+                }
+                if(document.getElementById("LoginName").value==""||document.getElementById("LoginPass").value==""){return;}
+                writetobase("users", document.getElementById("LoginName").value, {
+                    username: document.getElementById("LoginName").value,
+                    email: "",
+                    creationDate: Date.now(),
+                    password: document.getElementById("LoginPass").value,
+                    perms: {admin: false, verified: false}
+                });
+                handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value);
+            }
+
+            //TODO: maybe add this idk man
+            window.generateHash = function(string){
+                let hash = 0;
+                for (const char of string) {
+                    hash = (hash << 5) - hash + char.charCodeAt(0);
+                    hash |= 0; // Constrain to 32bit integer
+                }
+                return hash;
+            };
+
+
+            window.setCookie = function(cname,cvalue) {
+                const d = new Date();
+                d.setTime(d.getTime() + 31536000000);
+                let expires = "expires=" + d.toUTCString();
+                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+            }
+            window.getCookie = function(cname) {
+                let name = cname + "=";
+                let decodedCookie = decodeURIComponent(document.cookie);
+                let ca = decodedCookie.split(';');
+                for(let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(name) == 0) {
+                        return c.substring(name.length, c.length);
+                    }
+                }
+                return "";
+            }
+
+            //I can't remember what this is for.
+            //use to check if it exists, returns the cookie if there is one
+            window.checkCookie = function(cname, vname) {
+                let value = getCookie(cname);
+                if (value != "") {
+                    return value;
+                } else {
+                    value = vname;
+                    if (value != "" && value != null) {
+                        setCookie(cname, value);
+                    }
+                }
+            }
+
+            //handle Cookie login
+            if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
+                handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));
+            }
+            document.getElementById("out").innerText = document.cookie
         </script>
     </body>
 </html>
