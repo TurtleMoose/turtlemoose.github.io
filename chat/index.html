@@ -63,9 +63,6 @@
 
             window.sendMessage = function(messageid, name, message) {
                 if(messageid==""||name==""||message==""){document.getElementById("out").innerText = "something is blank";return;}
-                // if(message.includes("wingdings")){
-                    document.body.style.fontFamily='Wingdings';
-                // }
                 set(ref(db, 'messages/' + messageid), {
                     message:message,
                     user:name,
@@ -284,11 +281,11 @@
             }
 
             //handle Cookie login
-            if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
-            
-                handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));//REMEMBER TO CHANGE THIS BACK
-            
-            }
+            // if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
+            setTimeout(()=>{
+                handleLogin("testuser", "password")//getCookie("USERNAME"),getCookie("PASSWORD"));//REMEMBER TO CHANGE THIS BACK
+            },900);
+            // }
 
 
 
