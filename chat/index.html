@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+    <header>
+        <title>Weirdos Chat</title>
+    </header>
+    <body>
+        username:<input style="top:10px;left:80px;position:absolute;" id="name" />
+        <input style="bottom:10px;left:10px;position:absolute;width:800px;" id="message" />
+        <button style="bottom:10px;left:840px;position:absolute;" onclick='writeToBase(Date.now()+document.getElementById("name").value, document.getElementById("name").value,document.getElementById("message").value)'>send</button>
+        <div style="bottom:10px;position:absolute;right:0;"id="out">not read</div>
+        <div id="chat" style="top:38px;position:absolute;overflow:scroll;height:570px;width:1000px;background-color:white;"><br>messages will show here</div>
+        <script type="module">
+            document.getElementById('message').addEventListener('keydown',function(event){
+                if(event.key=='Enter'){writeToBase(Date.now()+document.getElementById("name").value, document.getElementById("name").value,document.getElementById("message").value)}
+            });
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+            import { getDatabase, ref, set, get, child, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+            const firebaseConfig = {
+                apiKey: "AIzaSyA6fn7YEU96gExWkm8NCCd2fD2M0QLh0Uo",
+                authDomain: "chatsite-5255b.firebaseapp.com",
+                databaseURL: "https://chatsite-5255b-default-rtdb.firebaseio.com",
+                projectId: "chatsite-5255b",
+                storageBucket: "chatsite-5255b.firebasestorage.app",
+                messagingSenderId: "36433826112",
+                appId: "1:36433826112:web:964390a605d85e6c45eaa5",
+                measurementId: "G-C4CD31ZV47"
+            };
+            const app = initializeApp(firebaseConfig);
+            const database = getDatabase(app);
+            let data;
+            // Writes to RTDB (duh)
+            window.writeToBase = function(messageid, name, message) {
+                if(messageid==""||name==""||message==""){document.getElementById("out").innerText = "something is blank";return;}
+                set(ref(database, 'messages/' + messageid), {
+                    message:message,
+                    user:name,
+                    time:Date.now(),
+                    formattime:new Date(Date.now()).toLocaleDateString("en-US")+" "+new Date(Date.now()).toLocaleTimeString("en-US")
+                }).then(() => {
+                    document.getElementById("out").innerText = "Write successful!";
+                }).catch((error) => {
+                    document.getElementById("out").innerText = "Error: " + error;
+                });
+            };
+            //This function gets the user once and doesn't update the value until it runs again
+            window.getOnce = function(path) {
+                const dbRef = ref(getDatabase());
+                get(child(dbRef, path)).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        return snapshot;
+                    } else {
+                        return false;
+                    }
+                }).catch((error) => {
+                    console.error(error);
+                });
+            };
+            //This function reads and updates the value whenever it changes
+            window.readOnValue = function(userId) {
+                onValue(ref(database, userId), (snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        let messages = [];
+                        Object.entries(data).forEach(([key, value]) => {
+                            if (value && value.user && value.message && value.time) {
+                                messages.push({
+                                    user: value.user,
+                                    message: value.message,
+                                    time: value.time,
+                                    formattime: value.formattime
+                                });
+                            }
+                        });
+                        messages.sort((a, b) => b.time - a.time);
+                        messages.reverse();
+                        const output = messages.map(msg => `<span>${msg.formattime}</span><br><b>${msg.user}</b>: ${msg.message}`).join('<br><br>');
+                        document.getElementById("chat").innerHTML = output;
+                        document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+                    } else {
+                        document.getElementById("out").innerText = "No data there";
+                    }
+                });
+            };
+            readOnValue('messages');
+        </script>
+    </body>
+</html>
+<style>
+    span{
+        color:grey;
+    }
+</style>
