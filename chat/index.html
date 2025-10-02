@@ -38,6 +38,7 @@
                     formattime:new Date(Date.now()).toLocaleDateString("en-US")+" "+new Date(Date.now()).toLocaleTimeString("en-US")
                 }).then(() => {
                     document.getElementById("out").innerText = "Write successful!";
+                    document.getElementById("message").value = "";
                 }).catch((error) => {
                     document.getElementById("out").innerText = "Error: " + error;
                 });
