@@ -90,8 +90,21 @@
                     return false; // Also return something in case of error
                 });
             };
+            window.readOnValue = function(path) {
+                return new Promise((resolve, reject) => {
+                    onValue(ref(db, path), (snapshot) => {
+                        if (snapshot.exists()) {
+                            resolve(snapshot); // Return snapshot if it exists
+                        } else {
+                            resolve(false); // Return false if no data exists
+                        }
+                    }, (error) => {
+                        reject(error); // Reject the promise in case of an error
+                    });
+                });
+            };
             //This function reads and updates the value whenever it changes
-            window.readOnValue = async function(userId) {
+            window.getMessages = async function(userId) {
                 onValue(ref(db, userId), async (snapshot) => {
                     if (snapshot.exists()) {
                         const data = snapshot.val();
@@ -141,22 +154,23 @@
                         user:name,
                         time:Date.now()
                     });
-                    const snapshot = await getOnce("users");
-                    if (snapshot) {
-                        const usersList = Object.values(snapshot.val());
-                        for(var i=0;i<usersList.length;i++){
-                            if(Date.now()-usersList[i].time>12000){
-                                if(usersList[i].user.includes("unnamed viewer")){
-                                    removePath("users/"+usersList[i].user)
+                    await getOnce("users").then(snapshot =>{
+                        if (snapshot) {
+                            const usersList = Object.values(snapshot.val());
+                            for(var i=0;i<usersList.length;i++){
+                                if(Date.now()-usersList[i].time>12000){
+                                    if(usersList[i].user.includes("unnamed viewer")){
+                                        removePath("users/"+usersList[i].user)
+                                    }
+                                    usersList.splice(i,1);
+                                    i--
                                 }
-                                usersList.splice(i,1);
-                                i--
                             }
+                            document.getElementById("users").innerHTML = usersList.map(user => `${user.user}<br>`).join("");
+                        } else {
+                            document.getElementById("users").innerHTML = "No active users";
                         }
-                        document.getElementById("users").innerHTML = usersList.map(user => `${user.user}<br>`).join("");
-                    } else {
-                        document.getElementById("users").innerHTML = "No users found";
-                    }
+                    });
                 } catch (error) {
                     document.getElementById("out").innerText = "Error: " + error;
                 }
@@ -164,21 +178,21 @@
 
 
 
-            window.writeFirestore = function (col, docum, mssg) {
+            window.writeFirestore = function(col, docum, mssg){
                 const theRef = doc(fs, col, docum);
                 setDoc(theRef, mssg) 
                     .catch((error) => {
                         document.getElementById("out").innerText = ("Error adding document: "+ error);
                     });
             };
-            window.updateFirestore = function (col, docum, mssg) {
+            window.updateFirestore = function(col, docum, mssg){
                 const theRef = doc(fs, col, docum);
                 updateDoc(theRef, mssg) 
                     .catch((error) => {
                         document.getElementById("out").innerText = ("Error adding document: "+ error);
                     });
             };
-            window.readDocument = async function (col, docId) {
+            window.readDocument = async function(col, docId){
                 try {
                     const docRef = doc(fs, col, docId);
                     const docSnap = await getDoc(docRef);
@@ -221,24 +235,27 @@
                 }
             }
 
-            window.handleSignUp = function (name, pass){
+            window.handleSignUp = async function(name, pass){
                 if(name==""||pass==""){return;}
-                document.getElementById("out").innerText = readDocument("users", name) 
-                if(readDocument("users", name)){
-                    document.getElementById("LoginProb").innerText = "Username already exists";
-                    return;
+                try{
+                    const docResp = await readDocument("users", name);
+                    if(docResp){
+                        document.getElementById("LoginProb").innerText = "Username already exists";
+                        return;
+                    }
+                    writeFirestore("users", document.getElementById("LoginName").value, {
+                        lastsignin: Date.now(),
+                        username: document.getElementById("LoginName").value,
+                        email: "",
+                        creationDate: Date.now(),
+                        password: document.getElementById("LoginPass").value,
+                        perms: { admin: false, verified: false}
+                    });
+                    handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value);
+                }catch(error){
+                    document.getElementById("out").innerText = "Sign up error: "+error;
                 }
-                if(document.getElementById("LoginName").value==""||document.getElementById("LoginPass").value==""){return;}
-                writeFirestore("users", document.getElementById("LoginName").value, {
-                    lastsignin:Date.now(),
-                    username: document.getElementById("LoginName").value,
-                    email: "",
-                    creationDate: Date.now(),
-                    password: document.getElementById("LoginPass").value,
-                    perms: {admin: false, verified: false}
-                });
-                handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value);
-            }
+            };
 
 
             window.setCookie = function(cname,cvalue) {
@@ -271,12 +288,12 @@
 
 
             // Start auto check-in every 10 seconds
-            window.checkin(ACCOUNT)
+            setTimeout(()=>{window.checkin(ACCOUNT)},1000);
             setInterval(() => {
                 window.checkin(ACCOUNT);
             }, 10000);
 
-            readOnValue('messages');
+            getMessages('messages');
         </script>
     </body>
 </html>
