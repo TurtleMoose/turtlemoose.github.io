@@ -94,12 +94,12 @@
                 return new Promise((resolve, reject) => {
                     onValue(ref(db, path), (snapshot) => {
                         if (snapshot.exists()) {
-                            resolve(snapshot); // Return snapshot if it exists
+                            resolve(snapshot);
                         } else {
-                            resolve(false); // Return false if no data exists
+                            resolve(false);
                         }
                     }, (error) => {
-                        reject(error); // Reject the promise in case of an error
+                        reject(error);
                     });
                 });
             };
@@ -257,7 +257,6 @@
                 }
             };
 
-
             window.setCookie = function(cname,cvalue) {
                 const d = new Date();
                 d.setTime(d.getTime() + 31536000000);
@@ -281,13 +280,9 @@
             }
 
             //handle Cookie login
-            // if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
-            setTimeout(()=>{
-                handleLogin("testuser", "password")//getCookie("USERNAME"),getCookie("PASSWORD"));//REMEMBER TO CHANGE THIS BACK
-            },900);
-            // }
-
-
+            if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
+                handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));
+            }
 
             // Start auto check-in every 10 seconds
             setTimeout(()=>{window.checkin(ACCOUNT)},1500);
