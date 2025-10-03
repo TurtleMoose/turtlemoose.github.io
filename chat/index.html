@@ -35,9 +35,10 @@
             <button id="LoginButton" class="LoginButton" onclick="handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)">Login</button>
         </div>
         <script type="module">
-            const VERSION = "v0.2.2"//be sure to update this
+            const VERSION = "v0.2.3"//be sure to update this
 
             let ACCOUNT = "";
+            let totallyrandomnumber = Math.floor(Math.random()*100000)
             document.getElementById('message').addEventListener('keydown',function(event){
                 if(event.key=='Enter'){sendMessage(Date.now()+ACCOUNT, ACCOUNT,document.getElementById("message").value)}
             });
@@ -144,10 +145,14 @@
                         document.getElementById("out").innerText = ("Error removing: ", error);
                     });
             }
-            let totallyrandomnumber = Math.floor(Math.random()*100000)
             window.checkin = async function(name){
                 if(name==""){
                     name="unnamed viewer "+totallyrandomnumber;
+                }else{
+                    await set(ref(db, "users/unnamed viewer "+totallyrandomnumber), {
+                        user:"cancelling",
+                        time:Date.now()-20000
+                    });
                 }
                 try{
                     await set(ref(db, 'users/'+name), {
@@ -166,7 +171,7 @@
                                     i--
                                 }
                             }
-                            document.getElementById("users").innerHTML = `Active users (${usersList.length})<br>`+ usersList.map(user => `${user.user}<br>`).join("");
+                            document.getElementById("users").innerHTML = `Active users (${usersList.length})<br>`+ usersList.map(user => (user.user==ACCOUNT||user.user.includes(totallyrandomnumber))?`<b>${user.user}</b><br>`:`${user.user}<br>`).join("");
                         } else {
                             document.getElementById("users").innerHTML = "No active users";
                         }
@@ -233,6 +238,7 @@
                 }catch(error){
                     document.getElementById("out").innerText = "Login error "+ error;
                 }
+                checkin(ACCOUNT)
             }
 
             window.handleSignUp = async function(name, pass){
@@ -285,9 +291,9 @@
             }
 
             // Start auto check-in every 10 seconds
-            setTimeout(()=>{window.checkin(ACCOUNT)},1500);
+            setTimeout(()=>{checkin(ACCOUNT)},1500);
             setInterval(() => {
-                window.checkin(ACCOUNT);
+                checkin(ACCOUNT);
             }, 10000);
 
             getMessages('messages');
