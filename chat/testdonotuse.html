@@ -298,7 +298,8 @@
                     notificationBtn.style.display = permission === "granted" ? "none" : "block";
                 });
             }
-
+            const text = `Notification Body`;
+            const notification = new Notification("Notification Title", {body: text});
             //handle Cookie login
             if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
                 handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));
