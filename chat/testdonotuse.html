@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+    <header>
+        <title>Weirdos Chat</title>
+    </header>
+    <body>
+        <button id="enable">Enable notifications</button>
+
+        <input style="bottom:10px;left:10px;position:absolute;width:800px;" id="message" />
+        <button style="bottom:10px;left:840px;position:absolute;" onclick='sendRelay();'>send</button>
+        <div style="bottom:10px;position:absolute;right:0;"id="out">not read</div>
+        <button style="bottom:30px;position:absolute;right:0;"onclick="document.getElementById('out').innerText='';">ok bro idc</button>
+        <div id="chat" style="top:38px;position:absolute;overflow:scroll;height:570px;width:1000px;background-color:white;"><br>messages will show here</div>
+        <div id="users" style="right:40px;position:absolute;">Loading users....</div>
+        <div id="login" class="LoginBox">
+            <div id="LoginProb"></div>
+            <div class="LoginText" style="font-size:25px;">Login</div>
+            <div class="LoginText">Username</div>
+            <input id="LoginName" class="LoginInput"/>
+            <div class="LoginText">Password</div>
+            <input id="LoginPass" class="LoginInput" type="password"/>
+            <button id="ShowPass" 
+                class="ShowPass"        
+                onclick="
+                let tempid=document.getElementById('LoginPass');
+                let tempid2=document.getElementById('ShowPass');
+                /*This feels wrong*/
+                if(tempid.type=='password'){
+                    tempid.type='none';
+                    tempid2.innerHTML='Hide';
+                }else{
+                    tempid.type='password';
+                    tempid2.innerHTML='Show';
+                }
+                ">Show</button>
+            <button id="CreateButton" class="LoginButton" onclick="handleSignUp(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)">Sign Up</button>
+            <button id="LoginButton" class="LoginButton" onclick="handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)">Login</button>
+        </div>
+        <script type="module">
+            const VERSION = "v0.2.4"//be sure to update this
+
+            let ACCOUNT = "";
+            let totallyrandomnumber = Math.floor(Math.random()*100000)
+            document.getElementById('message').addEventListener('keydown',function(event){
+                if(event.key=='Enter'){sendMessage(Date.now()+ACCOUNT, ACCOUNT,document.getElementById("message").value)}
+            });
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+            import { getDatabase, ref, set, get, child, onValue, remove} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+            import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
+            import { getFirestore, doc, setDoc, getDocs, getDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+            window.sendRelay = function(){sendMessage(Date.now()+ACCOUNT, ACCOUNT,document.getElementById("message").value);}
+            //im not scared of you
+            const firebaseConfig = {
+                apiKey: "AIzaSyA6fn7YEU96gExWkm8NCCd2fD2M0QLh0Uo",
+                authDomain: "chatsite-5255b.firebaseapp.com",
+                databaseURL: "https://chatsite-5255b-default-rtdb.firebaseio.com",
+                projectId: "chatsite-5255b",
+                storageBucket: "chatsite-5255b.firebasestorage.app",
+                messagingSenderId: "36433826112",
+                appId: "1:36433826112:web:964390a605d85e6c45eaa5",
+                measurementId: "G-C4CD31ZV47"
+            };
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const fs = getFirestore(app);
+
+            window.sendMessage = function(messageid, name, message) {
+                if(document.getElementById("message").value.includes("wingdings")){document.body.style.fontFamily="Wingdings";}
+                if(messageid==""||name==""||message==""){document.getElementById("out").innerText = "something is blank";return;}
+                set(ref(db, 'messages/' + messageid), {
+                    message:message,
+                    user:name,
+                    time:Date.now(),
+                    formattime:new Date(Date.now()).toLocaleDateString("en-US")+" "+new Date(Date.now()).toLocaleTimeString("en-US")
+                }).then(() => {
+                    document.getElementById("out").innerText = "Write successful!";
+                    document.getElementById("message").value = "";
+                }).catch((error) => {
+                    document.getElementById("out").innerText = "message error: " + error;
+                });
+            };
+
+            //This function gets the user once and doesn't update the value until it runs again
+            window.getOnce = function(path) {
+                const dbRef = ref(getDatabase());
+                return get(child(dbRef, path)).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        return snapshot;
+                    } else {
+                        return false;
+                    }
+                }).catch((error) => {
+                    document.getElementById("out").innerText = "Get once error: "+error;
+                    return false;
+                });
+            };
+            window.readOnValue = function(path) {
+                return new Promise((resolve, reject) => {
+                    onValue(ref(db, path), (snapshot) => {
+                        if (snapshot.exists()) {
+                            resolve(snapshot);
+                        } else {
+                            resolve(false);
+                        }
+                    }, (error) => {
+                        reject(error);
+                    });
+                });
+            };
+            //This function reads and updates the value whenever it changes
+            window.getMessages = async function(userId) {
+                onValue(ref(db, userId), async (snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        let messages = [];
+                        Object.entries(data).forEach(([key, value]) => {
+                            if (value && value.user && value.message && value.time) {
+                                messages.push({
+                                    user: value.user,
+                                    message: value.message,
+                                    time: value.time,
+                                    formattime: value.formattime
+                                });
+                            }
+                        });
+                        messages.sort((a, b) => b.time - a.time);
+                        messages.reverse();
+                        const serverV = await getOnce("version");
+                        let output;
+                        if(VERSION==serverV.val()){
+                            output = messages.map(msg => (msg.user=="SERVER")?`<span>${msg.formattime}</span><br><server>SERVER: ${msg.message}</server>`:`<span>${msg.formattime}</span><br><b>${msg.user}</b>: ${msg.message}`).join('<br><br>');
+                        }else{
+                            output = `<br><b>please reload to get the newest version of the site</b><br><br>(Current version: ${VERSION}, Newest Version: ${serverV.val()})`
+                        }
+                        document.getElementById("chat").innerHTML = output;
+                        document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+                    } else {
+                        document.getElementById("out").innerText = "No data there";
+                    }
+                });
+            };
+            window.removePath = function(path){
+                remove(ref(db, path))
+                    .then(() => {
+                        //nothing i think?
+                    })
+                    .catch((error) => {
+                        document.getElementById("out").innerText = ("Error removing: ", error);
+                    });
+            }
+            window.checkin = async function(name){
+                if(name==""){
+                    name="unnamed viewer "+totallyrandomnumber;
+                }else{
+                    await set(ref(db, "users/unnamed viewer "+totallyrandomnumber), {
+                        user:"users/unnamed viewer "+totallyrandomnumber,
+                        time:Date.now()-20000
+                    });
+                }
+                try{
+                    await set(ref(db, 'users/'+name), {
+                        user:name,
+                        time:Date.now()
+                    });
+                    await getOnce("users").then(snapshot =>{
+                        if (snapshot) {
+                            const usersList = Object.values(snapshot.val());
+                            for(var i=0;i<usersList.length;i++){
+                                if(Date.now()-usersList[i].time>10000){
+                                    if(usersList[i].user.includes("unnamed viewer")){
+                                        removePath("users/"+usersList[i].user)
+                                    }
+                                    usersList.splice(i,1);
+                                    i--
+                                }
+                            }
+                            document.getElementById("users").innerHTML = `Active users (${usersList.length})<br>`+ usersList.map(user => (user.user==ACCOUNT||user.user.includes(totallyrandomnumber))?`<b>${user.user}</b><br>`:`${user.user}<br>`).join("");
+                        } else {
+                            document.getElementById("users").innerHTML = "No active users";
+                        }
+                    });
+                } catch (error) {
+                    document.getElementById("out").innerText = "Error: " + error;
+                }
+            };
+
+
+            window.writeFirestore = function(col, docum, mssg){
+                const theRef = doc(fs, col, docum);
+                setDoc(theRef, mssg) 
+                    .catch((error) => {
+                        document.getElementById("out").innerText = ("Error adding document: "+ error);
+                    });
+            };
+            window.updateFirestore = function(col, docum, mssg){
+                const theRef = doc(fs, col, docum);
+                updateDoc(theRef, mssg) 
+                    .catch((error) => {
+                        document.getElementById("out").innerText = ("Error adding document: "+ error);
+                    });
+            };
+            window.readDocument = async function(col, docId){
+                try {
+                    const docRef = doc(fs, col, docId);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        return docSnap;
+                    } else {
+                        return false;
+                    }
+                } catch (error) {
+                    console.log(error)
+                    document.getElementById("out").innerText = "Error reading Firestore: " + error;
+                }
+            };
+            window.handleLogin = async function (name, pass) {
+                if(name==""||pass==""){
+                    return;
+                }
+                try{
+                    const docResp = await readDocument("users", name);
+                    if(!docResp||!docResp.data){
+                        document.getElementById("LoginProb").innerText = "Username does not exist";
+                        return;
+                    }
+                    const user = docResp.data();
+                    if(user.username == name && user.password == pass){
+                        console.log(user.password)
+                        document.getElementById("LoginProb").innerText = "Logged In, Redirecting";
+                        setCookie("USERNAME",name)
+                        setCookie("PASSWORD",pass)
+                        ACCOUNT = name;
+                        document.getElementById("login").style.display = "none"
+                        updateFirestore("users", document.getElementById("LoginName").value, {
+                            lastsignin:Date.now()
+                        });
+                    }else{
+                        document.getElementById("LoginProb").innerText = "Incorrect password";
+                    }
+                }catch(error){
+                    document.getElementById("out").innerText = "Login error "+ error;
+                }
+                checkin(ACCOUNT)
+            }
+
+            window.handleSignUp = async function(name, pass){
+                if(name==""||pass==""){return;}
+                try{
+                    const docResp = await readDocument("users", name);
+                    if(docResp){
+                        document.getElementById("LoginProb").innerText = "Username already exists";
+                        return;
+                    }
+                    writeFirestore("users", document.getElementById("LoginName").value, {
+                        lastsignin: Date.now(),
+                        username: document.getElementById("LoginName").value,
+                        email: "",
+                        creationDate: Date.now(),
+                        password: document.getElementById("LoginPass").value,
+                        perms: { admin: false, verified: false}
+                    });
+                    handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value);
+                }catch(error){
+                    document.getElementById("out").innerText = "Sign up error: "+error;
+                }
+            };
+
+            window.setCookie = function(cname,cvalue) {
+                const d = new Date();
+                d.setTime(d.getTime() + 31536000000);
+                let expires = "expires=" + d.toUTCString();
+                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+            }
+            window.getCookie = function(cname) {
+                let name = cname + "=";
+                let decodedCookie = decodeURIComponent(document.cookie);
+                let ca = decodedCookie.split(';');
+                for(let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(name) == 0) {
+                        return c.substring(name.length, c.length);
+                    }
+                }
+                return "";
+            }
+
+            window.askNotificationPermission = function() {
+                // Check if the browser supports notifications
+                if (!("Notification" in window)) {
+                    console.log("This browser does not support notifications.");
+                    return;
+                }
+                Notification.requestPermission().then((permission) => {
+                    // set the button to shown or hidden, depending on what the user answers
+                    notificationBtn.style.display = permission === "granted" ? "none" : "block";
+                });
+            }
+
+            //handle Cookie login
+            if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
+                handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));
+            }
+
+            // Start auto check-in every 10 seconds
+            setTimeout(()=>{checkin(ACCOUNT)},1500);
+            setInterval(() => {
+                if(document.hasFocus()){
+                    checkin(ACCOUNT);
+                }
+            }, 10000);
+
+            getMessages('messages');
+        </script>
+    </body>
+</html>
+<style>
+    span{
+        color:grey;
+    }
+    server{
+        font-size:40px;
+    }
+    .LoginBox{
+        position:absolute;
+        width:380px;
+        top:30%;
+        left:37%;
+        background:#B6B666;
+        border-radius:8px;
+        padding-top:0.3%;
+        border:0 #767676 solid;
+
+    }
+    .LoginText{
+        padding-left:2%;
+    }
+    .LoginInput{
+        position:relative;
+        left:0%;
+        width:75%;
+        margin-top:1%;
+        margin-bottom:1%;
+        margin-left:3%;
+        background-color:#BBBBBB;
+        border-radius:5px;
+        height:24px;
+        font-size:20px;
+        border:2px #767676 solid;
+    }
+    :hover.LoginInput{
+        background-color:#AAAAAA;
+    }
+    .LoginButton{
+        width:159px;
+        height:40px;
+        margin:14px;
+        position:relative;
+        font-size:20px;
+        background-color:#BBBBBB;
+        border:2px #767676 solid;
+        border-radius:5px;
+    }
+    :hover.LoginButton{
+        background-color:#AAAAAA;
+    }
+    :active.LoginButton{
+        background-color:#BBBBBB;
+    }
+    .ShowPass{
+        border-radius:5px;
+        border:2px #767676 solid;
+        height:30px;
+        top:-1.5px;/*hahahahahahahahaha its not centered*/
+        position:relative;
+        background-color:#BBBBBB;
+    }
+    :hover.ShowPass{
+        background-color:#AAAAAA;
+    }
+    :active.ShowPass{
+        background-color:#BBBBBB;
+    }
+</style>
