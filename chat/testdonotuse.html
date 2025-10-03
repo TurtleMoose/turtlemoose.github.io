@@ -4,7 +4,7 @@
         <title>Weirdos Chat</title>
     </header>
     <body>
-        <button id="enable">Enable notifications</button>
+        <button id="enable" onclick="askNotificationPermission()">Enable notifications</button>
 
         <input style="bottom:10px;left:10px;position:absolute;width:800px;" id="message" />
         <button style="bottom:10px;left:840px;position:absolute;" onclick='sendRelay();'>send</button>
@@ -153,7 +153,7 @@
                     name="unnamed viewer "+totallyrandomnumber;
                 }else{
                     await set(ref(db, "users/unnamed viewer "+totallyrandomnumber), {
-                        user:"users/unnamed viewer "+totallyrandomnumber,
+                        user:"unnamed viewer "+totallyrandomnumber,
                         time:Date.now()-20000
                     });
                 }
@@ -296,10 +296,10 @@
                 Notification.requestPermission().then((permission) => {
                     // set the button to shown or hidden, depending on what the user answers
                     notificationBtn.style.display = permission === "granted" ? "none" : "block";
+                                const text = `Notification Body`;
+            const notification = new Notification("Notification Title", {body: text});
                 });
             }
-            const text = `Notification Body`;
-            const notification = new Notification("Notification Title", {body: text});
             //handle Cookie login
             if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
                 handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));
