@@ -4,14 +4,13 @@
         <title>Weirdos Chat</title>
     </header>
     <body>
-        <button id="enable" onclick="askNotificationPermission()">Enable notifications</button>
-
+        <div id="chat" style="top:10px;position:absolute;overflow:scroll;height:90%;width:1000px;background-color:white;"><br>Loading messages...</div>
         <input style="bottom:10px;left:10px;position:absolute;width:800px;" id="message" />
         <button style="bottom:10px;left:840px;position:absolute;" onclick='sendRelay();'>send</button>
         <div style="bottom:10px;position:absolute;right:0;"id="out">not read</div>
         <button style="bottom:30px;position:absolute;right:0;"onclick="document.getElementById('out').innerText='';">ok bro idc</button>
-        <div id="chat" style="top:38px;position:absolute;overflow:scroll;height:570px;width:1000px;background-color:white;"><br>messages will show here</div>
         <div id="users" style="right:40px;position:absolute;">Loading users....</div>
+                <button id="enable" style="position:absolute;" onclick="askNotificationPermission()">Enable notifications</button>
         <div id="login" class="LoginBox">
             <div id="LoginProb"></div>
             <div class="LoginText" style="font-size:25px;">Login</div>
@@ -37,17 +36,20 @@
             <button id="LoginButton" class="LoginButton" onclick="handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)">Login</button>
         </div>
         <script type="module">
-            const VERSION = "v0.2.4"//be sure to update this
+            const VERSION = "v0.3.1"//be sure to update this
 
             let ACCOUNT = "";
             let totallyrandomnumber = Math.floor(Math.random()*100000)
             document.getElementById('message').addEventListener('keydown',function(event){
                 if(event.key=='Enter'){sendMessage(Date.now()+ACCOUNT, ACCOUNT,document.getElementById("message").value)}
             });
+            
             import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
             import { getDatabase, ref, set, get, child, onValue, remove} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
             import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
             import { getFirestore, doc, setDoc, getDocs, getDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+            import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+            
             window.sendRelay = function(){sendMessage(Date.now()+ACCOUNT, ACCOUNT,document.getElementById("message").value);}
             //im not scared of you
             const firebaseConfig = {
@@ -63,6 +65,7 @@
             const app = initializeApp(firebaseConfig);
             const db = getDatabase(app);
             const fs = getFirestore(app);
+            const auth = getAuth(app);
 
             window.sendMessage = function(messageid, name, message) {
                 if(document.getElementById("message").value.includes("wingdings")){document.body.style.fontFamily="Wingdings";}
@@ -179,6 +182,10 @@
                             document.getElementById("users").innerHTML = "No active users";
                         }
                     });
+                    const serverV = await getOnce("version");
+                        if(VERSION!=serverV.val()){
+                            document.getElementById("chat").innerHTML = `<br><b>please reload to get the newest version of the site</b><br><br>(Current version: ${VERSION}, Newest Version: ${serverV.val()})`
+                        }
                 } catch (error) {
                     document.getElementById("out").innerText = "Error: " + error;
                 }
@@ -234,6 +241,13 @@
                         updateFirestore("users", document.getElementById("LoginName").value, {
                             lastsignin:Date.now()
                         });
+                        signInWithEmailAndPassword(auth, name+"@gmail.com", pass)
+                            .then((userCredential) => {
+                                const user = userCredential.user;
+                            })
+                            .catch((error) => {
+                                document.getElementById("out").innerText = "SIWEAP "+error;
+                            });
                     }else{
                         document.getElementById("LoginProb").innerText = "Incorrect password";
                     }
@@ -245,6 +259,7 @@
 
             window.handleSignUp = async function(name, pass){
                 if(name==""||pass==""){return;}
+                if(name.includes(" ")){document.getElementById("LoginProb").innerText = "Username can't contain spaces for now";return;}
                 try{
                     const docResp = await readDocument("users", name);
                     if(docResp){
@@ -259,6 +274,13 @@
                         password: document.getElementById("LoginPass").value,
                         perms: { admin: false, verified: false}
                     });
+                    createUserWithEmailAndPassword(auth, name+"@gmail.com", pass)
+                        .then((userCredential) => {
+                            const user = userCredential.user;
+                        })
+                        .catch((error) => {
+                            document.getElementById("out").innerText = "CUWEAP "+error;
+                        });
                     handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value);
                 }catch(error){
                     document.getElementById("out").innerText = "Sign up error: "+error;
@@ -290,14 +312,14 @@
             window.askNotificationPermission = function() {
                 // Check if the browser supports notifications
                 if (!("Notification" in window)) {
-                    console.log("This browser does not support notifications.");
+                    document.getElementById("out").innerText=("This browser does not support notifications.");
                     return;
                 }
                 Notification.requestPermission().then((permission) => {
                     // set the button to shown or hidden, depending on what the user answers
-                    notificationBtn.style.display = permission === "granted" ? "none" : "block";
-                                const text = `Notification Body`;
-            const notification = new Notification("Notification Title", {body: text});
+                    document.getElementById("enable").style.display = permission === "granted" ? "none" : "block";
+                    const text = `Notification Body`;
+                    const notification = new Notification("Notification Title", {body: text});
                 });
             }
             //handle Cookie login
@@ -306,7 +328,7 @@
             }
 
             // Start auto check-in every 10 seconds
-            setTimeout(()=>{checkin(ACCOUNT)},1500);
+            setTimeout(()=>{checkin(ACCOUNT)},1000);
             setInterval(() => {
                 if(document.hasFocus()){
                     checkin(ACCOUNT);
