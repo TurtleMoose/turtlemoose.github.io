@@ -4,6 +4,7 @@
         <title>Weirdos Chat</title>
     </header>
     <body>
+        <button id="enable" onclick="askNotificationPermission()">Enable notifications</button>
 
         <input style="bottom:10px;left:10px;position:absolute;width:800px;" id="message" />
         <button style="bottom:10px;left:840px;position:absolute;" onclick='sendRelay();'>send</button>
@@ -253,6 +254,7 @@
 
             window.handleSignUp = async function(name, pass){
                 if(name==""||pass==""){return;}
+                if(name.includes(" ")){document.getElementById("LoginProb").innerText = "Username can't contain spaces for now";return;}
                 try{
                     const docResp = await readDocument("users", name);
                     if(docResp){
@@ -302,6 +304,19 @@
                 return "";
             }
 
+            window.askNotificationPermission = function() {
+                // Check if the browser supports notifications
+                if (!("Notification" in window)) {
+                    console.log("This browser does not support notifications.");
+                    return;
+                }
+                Notification.requestPermission().then((permission) => {
+                    // set the button to shown or hidden, depending on what the user answers
+                    document.getElementById("enable").style.display = permission === "granted" ? "none" : "block";
+                    const text = `Notification Body`;
+                    const notification = new Notification("Notification Title", {body: text});
+                });
+            }
             //handle Cookie login
             if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
                 handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));
