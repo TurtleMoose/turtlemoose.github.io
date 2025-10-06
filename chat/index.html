@@ -4,6 +4,7 @@
         <title>Weirdos Chat</title>
     </header>
     <body>
+
         <input style="bottom:10px;left:10px;position:absolute;width:800px;" id="message" />
         <button style="bottom:10px;left:840px;position:absolute;" onclick='sendRelay();'>send</button>
         <div style="bottom:10px;position:absolute;right:0;"id="out">not read</div>
@@ -35,7 +36,7 @@
             <button id="LoginButton" class="LoginButton" onclick="handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)">Login</button>
         </div>
         <script type="module">
-            const VERSION = "v0.2.4"//be sure to update this
+            const VERSION = "v0.3"//be sure to update this
 
             let ACCOUNT = "";
             let totallyrandomnumber = Math.floor(Math.random()*100000)
@@ -46,6 +47,7 @@
             import { getDatabase, ref, set, get, child, onValue, remove} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
             import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
             import { getFirestore, doc, setDoc, getDocs, getDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+            import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
             window.sendRelay = function(){sendMessage(Date.now()+ACCOUNT, ACCOUNT,document.getElementById("message").value);}
             //im not scared of you
             const firebaseConfig = {
@@ -61,6 +63,7 @@
             const app = initializeApp(firebaseConfig);
             const db = getDatabase(app);
             const fs = getFirestore(app);
+            const auth = getAuth(app);
 
             window.sendMessage = function(messageid, name, message) {
                 if(document.getElementById("message").value.includes("wingdings")){document.body.style.fontFamily="Wingdings";}
@@ -151,7 +154,7 @@
                     name="unnamed viewer "+totallyrandomnumber;
                 }else{
                     await set(ref(db, "users/unnamed viewer "+totallyrandomnumber), {
-                        user:"cancelling",
+                        user:"unnamed viewer "+totallyrandomnumber,
                         time:Date.now()-20000
                     });
                 }
@@ -164,7 +167,7 @@
                         if (snapshot) {
                             const usersList = Object.values(snapshot.val());
                             for(var i=0;i<usersList.length;i++){
-                                if(Date.now()-usersList[i].time>12000){
+                                if(Date.now()-usersList[i].time>10000){
                                     if(usersList[i].user.includes("unnamed viewer")){
                                         removePath("users/"+usersList[i].user)
                                     }
@@ -181,7 +184,6 @@
                     document.getElementById("out").innerText = "Error: " + error;
                 }
             };
-
 
 
             window.writeFirestore = function(col, docum, mssg){
@@ -233,6 +235,13 @@
                         updateFirestore("users", document.getElementById("LoginName").value, {
                             lastsignin:Date.now()
                         });
+                        signInWithEmailAndPassword(auth, name+"@gmail.com", pass)
+                            .then((userCredential) => {
+                                const user = userCredential.user;
+                            })
+                            .catch((error) => {
+                                document.getElementById("out").innerText = "SIWEAP "+error;
+                            });
                     }else{
                         document.getElementById("LoginProb").innerText = "Incorrect password";
                     }
@@ -258,6 +267,13 @@
                         password: document.getElementById("LoginPass").value,
                         perms: { admin: false, verified: false}
                     });
+                    createUserWithEmailAndPassword(auth, name+"@gmail.com", pass)
+                        .then((userCredential) => {
+                            const user = userCredential.user;
+                        })
+                        .catch((error) => {
+                            document.getElementById("out").innerText = "CUWEAP "+error;
+                        });
                     handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value);
                 }catch(error){
                     document.getElementById("out").innerText = "Sign up error: "+error;
