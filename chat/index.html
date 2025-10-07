@@ -135,12 +135,14 @@
                         let output;
                         if(VERSION==serverV.val()){
                             output = messages.map(msg => (msg.user=="SERVER")?`<span>${msg.formattime}</span><br><server>SERVER: ${msg.message}</server>`:`<span>${msg.formattime}</span><br><b>${msg.user}</b>: ${msg.message}`).join('<br><br>');
+                            if(NOTIFICATIONS||!NOTIFICATIONS){
+                                document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
+                                sendNotification("Weirdos Chat",messages[messages.length-1].user+": "+messages[messages.length-1].message)
+                            }
                         }else{
                             output = `<br><b>please reload to get the newest version of the site</b><br><br>(Current version: ${VERSION}, Newest Version: ${serverV.val()})`
                         }
-                        if(NOTIFICATIONS){
-                            sendNotification("Weirdos Chat",messages[messages.length-1].user+": "+messages[messages.length-1].message)
-                        }
+
                         document.getElementById("chat").innerHTML = output;
                         document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
                     } else {
