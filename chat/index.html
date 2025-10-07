@@ -10,7 +10,7 @@
         <div style="bottom:10px;position:absolute;right:0;"id="out">not read</div>
         <button style="bottom:30px;position:absolute;right:0;"onclick="document.getElementById('out').innerText='';">ok bro idc</button>
         <div id="users" style="right:40px;position:absolute;">Loading users....</div>
-        <button id="enable" style="position:absolute;bottom:60px;right:10px;" onclick="(this.textContent=='Toggle notifications (on)')?this.textContent='Toggle notifications (off)':this.textContent='Toggle notifications (on)';NOTIFICATIONS = this.textContent=='Toggle notifications (on)';if(NOTIFICATIONS){sendNotification('Weirdos Chat','Notifications have been allowed')}else{sendNotification('Weirdos Chat','Notifications have been disabled and you won\'t get any until you reenable them.')}">Toggle notifications (off)</button>
+        <button id="enable" style="position:absolute;bottom:60px;right:10px;" onclick="notifyRelay(this)">Toggle notifications (off)</button>
         <!-- <button id="enable" style="position:absolute;bottom:60px;right:10px;" onclick="openDM('testuser')">dm test</button> -->
         <div id="login" class="LoginBox">
             <div id="LoginProb"></div>
@@ -52,7 +52,7 @@
             import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
             import { getFirestore, doc, setDoc, getDocs, getDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
             import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-
+            window.notifyRelay =function(ele){(ele.textContent=='Toggle notifications (on)')?ele.textContent='Toggle notifications (off)':ele.textContent='Toggle notifications (on)';NOTIFICATIONS = ele.textContent=='Toggle notifications (on)';if(NOTIFICATIONS){sendNotification('Weirdos Chat','Notifications have been allowed')}else{sendNotification('Weirdos Chat','Notifications have been disabled and you won\'t get any until you reenable them.')}}
             window.sendRelay = function(){sendMessage(Date.now()+ACCOUNT, ACCOUNT,document.getElementById("message").value);}
             //im not scared of you
             const firebaseConfig = {
@@ -135,7 +135,7 @@
                         let output;
                         if(VERSION==serverV.val()){
                             output = messages.map(msg => (msg.user=="SERVER")?`<span>${msg.formattime}</span><br><server>SERVER: ${msg.message}</server>`:`<span>${msg.formattime}</span><br><b>${msg.user}</b>: ${msg.message}`).join('<br><br>');
-                            if(NOTIFICATIONS){
+                            if(NOTIFICATIONS||!NOTIFICATIONS){
                                 document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
                                 sendNotification("Weirdos Chat",messages[messages.length-1].user+": "+messages[messages.length-1].message)
                             }
