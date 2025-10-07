@@ -183,7 +183,7 @@
                                     i--
                                 }
                             }
-                            // document.getElementById("users").innerHTML = `Active users (${usersList.length})<br>`+ usersList.map(user => (user.user==ACCOUNT||user.user.includes(totallyrandomnumber))?`<b>${user.user}</b><br>`:`${user.user}<br>`).join("");
+                            document.getElementById("users").innerHTML = `Active users (${usersList.length})<br>`+ usersList.map(user => (user.user==ACCOUNT||user.user.includes(totallyrandomnumber))?`<b>${user.user}</b><br>`:`${user.user}<br>`).join("");
                         } else {
                             document.getElementById("users").innerHTML = "No active users";
                         }
