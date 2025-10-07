@@ -135,7 +135,7 @@
                         let output;
                         if(VERSION==serverV.val()){
                             output = messages.map(msg => (msg.user=="SERVER")?`<span>${msg.formattime}</span><br><server>SERVER: ${msg.message}</server>`:`<span>${msg.formattime}</span><br><b>${msg.user}</b>: ${msg.message}`).join('<br><br>');
-                            if(NOTIFICATIONS||!NOTIFICATIONS){
+                            if(NOTIFICATIONS){
                                 document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
                                 sendNotification("Weirdos Chat",messages[messages.length-1].user+": "+messages[messages.length-1].message)
                             }
