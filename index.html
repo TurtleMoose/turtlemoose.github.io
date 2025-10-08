@@ -1,7 +1,7 @@
 <html>
     <link rel="stylesheet" href="style.css">
     <head>
-        <title>Franklin IT</title>
+        <title>Home | yourmodernproblems.com</title>
         <!--goofy ah icons-->
         <link rel="shortcut icon" href="imgs/fav/favicon.png"/>
         <link rel="shortcut icon" href="imgs/fav/favicon.ico"/>
@@ -9,48 +9,61 @@
     <div id="edgeL"class="edge"></div>
     <div id="edgeR"class="edge"style="left:98.5%;"></div>
     <body style="font-family:arial;font-weight:bold;">
-        <div id="header"class="header">
-            <img src="imgs/light/noslogan.png"id="headerimglight"onClick="location.href = ''"
-                style="transition:0.2s;height:80px;left:2.25%;position:fixed;z-index:13;">
-            <img src="imgs/dark/nosloganDark.png"id="headerimgdark"onClick="location.href = ''"
-                style="transition:0.2s;height:80px;left:2.25%;position:fixed;z-index:14;opacity:0;">
+        <div id="header"class="header"style="background-color:#242424;">
             <div id="buttonbox"style="left:39%;width:60%;position:fixed;"><!--button box, also known as absolute BS-->
-                <div id="button1"class="headbutton"onClick="location.href = 'buy/';">BUY</div>
-                <div id="button2"class="headbutton"onClick="location.href = 'build/';">BUILD</div>
-                <div id="button3"class="headbutton"onClick="location.href = 'repair/';">REPAIR</div>
-                <div id="button4"class="headbutton"onClick="location.href = 'https://www.google.com';">Google</div>
+                <div id="button1"class="headbutton"style="color:white;"onClick="location.href = 'https://yourmodernproblems.com/chat';">Chat</div>
+                <div id="button2"class="headbutton"style="color:white;"onClick="location.href = 'https://www.google.com';">Google</div>
             </div>
         </div>
         <div id="bg"class="bg">
-            <img id="mainimglow"src="imgs/mainhomelow.png" style="padding-top:0px;width:100%;">
-            <img id="mainimg"src="imgs/mainhome.png" style="left:0;position:absolute;padding-top:0px;width:100%;">
             <div id="badidea1"style="z-index:10;position:relative;top:-160px;font-size:70px;"><mark>Modern Problems</mark></div>
             <div id="badidea2"style="z-index:10;position:relative;top:-170px;font-size:70px;"><mark>Require Modern Solutions.</mark></div>
-            <div id="bibase"style="z-index:9;transition:0.2s;position:relative;top:-180px;height:25px;width:100%;background-color:white;"></div>
+            <div id="bibase"style="z-index:9;transition:0.2s;position:absolute;top:180px;height:25px;font-size:100px;width:100%;background-color:white;">i'm working on it.</div>
             <div id="badidea3"style="z-index:10;position:relative;top:-180px;font-size:30px;"><mark style="border-top-right-radius:0px;border-bottom-right-radius:15px;">And we're here to provide them. <!--<a href="about/">Learn how →</a>--></mark></div>
-            <div id="productshelf"class="productshelf">
-                <div id="productdrawer1"class="productdrawer">
-                    <img id="product1img"class="productimg"src="imgs/products/">
-                    <div id="product1desc"class="productdesc">Uh Oh! The description could not load.</div>
-                </div>
-                <div id="productdrawer2"class="productdrawer">
-                    <img id="product2img"class="productimg"src="imgs/products/">
-                    <div id="product2desc"class="productdesc">Uh Oh! The description could not load.</div>
-                </div>
-                <div id="productdrawer3"class="productdrawer">
-                    <img id="product3img"class="productimg"src="imgs/products/">
-                    <div id="product3desc"class="productdesc">Uh Oh! The description could not load.</div>
-                </div>
-            </div>
         </div>
-        <div >
-            <img id="darkbutton"class="darkbutton"src="imgs/light/light.png"onclick="makeitdark();">
+        <img id="darkbutton"class="darkbutton"src="imgs/light/light.png"onclick="makeitdark();">
     </body>
     <noscript><!--This shows if JS is disabled. Easy fix because the entire bloody site relies on js for now-->
         <div style="width:100%;height:100%;color:#B8B8B8;top:0;left:0;z-index:101;position:fixed;background-color:#242424;">
             <div style="width:100%;top:30%;position:fixed;text-align:center;font-size:30px;">You have disabled Javascript in your browser. Please reenable it to view our site properly.</div>
-            <div style="width:100%;top:90%;position:fixed;text-align:center;font-size:15px;">2024 Franklin IT</div>
+            <div style="width:100%;top:90%;position:fixed;text-align:center;font-size:15px;">2024 yourmodernproblems.com</div>
         </div>
     </noscript>
 </html>
-<script src="main.js"></script>
+<script>
+    let isDarkMode=false;
+    if(isDarkMode){
+    isDarkMode=1;
+}else{
+    isDarkMode=0;
+}
+darkmodetoggle();
+//Toggles darkmode
+function darkmodetoggle(){
+    if(isDarkMode){
+        //swap the light & dark header images
+        document.getElementById("header").style.backgroundColor = "#242424";
+        //     document.getElementById("edgeL").style.backgroundColor = "#242424";
+        //   document.getElementById("edgeR").style.backgroundColor = "#242424";
+        // document.getElementById("bibase").style.backgroundColor = "#242424";
+        document.getElementById("darkbutton").src="imgs/dark/dark.png"
+        for(var i=1;i<3;i++){
+            // document.getElementById("button"+i).style.color = "#B8B8B8";
+        }
+    }else{
+        //swap the light & dark header images
+        // document.getElementById("headerimgdark").style.opacity = 0;  //  oh good
+        // document.getElementById("headerimglight").style.opacity = 100;//more bull
+        // document.getElementById("header").style.backgroundColor = "white";
+        //   document.getElementById("edgeL").style.backgroundColor = "white";
+        // document.getElementById("edgeR").style.backgroundColor = "white";
+        // document.getElementById("bibase").style.backgroundColor = "white";
+        document.getElementById("darkbutton").src="imgs/light/light.png"
+        //easier to just make the buttons change in a for loop
+        for(var i=1;i<3;i++){
+            // document.getElementById("button"+i).style.color = "black";
+        }
+    }//this is all crap
+    //toggle the dark mode on elements with mark (highlight)
+}
+</script>
