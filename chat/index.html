@@ -11,7 +11,7 @@
         <button style="bottom:30px;position:absolute;right:0;"onclick="document.getElementById('out').innerText='';">ok bro idc</button>
         <div id="users" style="right:40px;position:absolute;">Loading users....</div>
         <button id="enable" style="position:absolute;bottom:60px;right:10px;" onclick="notifyRelay(this)">Toggle notifications (off)</button>
-        <!-- <button id="enable" style="position:absolute;bottom:60px;right:10px;" onclick="openDM('testuser')">dm test</button> -->
+        <!-- <button id="enable" style="position:absolute;bottom:90px;right:10px;" onclick="dmRelayTemp()">dm test</button> -->
         <div id="login" class="LoginBox">
             <div id="LoginProb"></div>
             <div class="LoginText" style="font-size:25px;">Login</div>
@@ -42,6 +42,7 @@
             let NOTIFICATIONS = false;    
             let OPENDM = "";
             let ACCOUNT = "";
+            let notfirstdm = false;
             let totallyrandomnumber = Math.floor(Math.random()*100000)
             document.getElementById('message').addEventListener('keydown',function(event){
                 if(event.key=='Enter'){sendMessage(Date.now()+ACCOUNT, ACCOUNT,document.getElementById("message").value)}
@@ -54,6 +55,7 @@
             import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
             window.notifyRelay =function(ele){(ele.textContent=='Toggle notifications (on)')?ele.textContent='Toggle notifications (off)':ele.textContent='Toggle notifications (on)';NOTIFICATIONS = ele.textContent=='Toggle notifications (on)';if(NOTIFICATIONS){sendNotification('Weirdos Chat','Notifications have been allowed')}else{sendNotification('Weirdos Chat','Notifications have been disabled and you won\'t get any until you reenable them.')}}
             window.sendRelay = function(){sendMessage(Date.now()+ACCOUNT, ACCOUNT,document.getElementById("message").value);}
+            window.dmRelayTemp =function(){getMessages("dms/noah/testuser")}
             //im not scared of you
             const firebaseConfig = {
                 apiKey: "AIzaSyA6fn7YEU96gExWkm8NCCd2fD2M0QLh0Uo",
@@ -70,16 +72,55 @@
             const fs = getFirestore(app);
             const auth = getAuth(app);
 
+            //haha abuse of errors lmao
+            window.isValidURL = function(url) {
+                try {
+                    new URL(url);
+                    return true;
+                } catch (err) {
+                    return false;
+                }
+            }
+            window.findEndOfURL = function(url){
+                let l="<>,?'\"`~\\|][ {}()"
+                let o=[]
+                let n=[]
+                for(var i=0;i<l.length;i++){
+                    if(url.indexOf(l.substring(i,i+1))!=-1){
+                        o.push(l.substring(i,i+1))
+                        n.push(url.indexOf(l.substring(i,i+1)))
+                    }
+                }
+                var lowest = 0;
+                for (var i=1;i<n.length;i++) {
+                    if (n[i] < n[lowest]) lowest = i;
+                }
+                return o[lowest];
+            }
             window.sendMessage = function(messageid, name, message) {
                 if(document.getElementById("message").value.includes("wingdings")){document.body.style.fontFamily="Wingdings";}
                 if(messageid==""||name==""||message==""){document.getElementById("out").innerText = "something is blank";return;}
+                //link thingy hope it works
+                if(message.includes("http")){
+                    let endpos = message.indexOf(" ", message.indexOf("http"));
+                    if(endpos === -1){
+                        endpos = message.length;
+                    }
+                    let suspectedlink = message.substring(message.indexOf("http"), endpos);
+                    if(isValidURL(suspectedlink)){
+                        document.getElementById("out").innerText = "url worked "+ suspectedlink;
+                        message = message.substring(0,message.indexOf("http"))+"<a href=\""+suspectedlink+"\">"+suspectedlink+"</a>"+message.substring(endpos)
+                    } else {
+                        document.getElementById("out").innerText = "url noped "+ suspectedlink;
+                    }
+                }
                 set(ref(db, 'messages/' + messageid), {
                     message:message,
                     user:name,
                     time:Date.now(),
                     formattime:new Date(Date.now()).toLocaleDateString("en-US")+" "+new Date(Date.now()).toLocaleTimeString("en-US")
                 }).then(() => {
-                    document.getElementById("out").innerText = "Write successful!";
+                    // document.getElementById("out").innerText = "Write successful!";
                     document.getElementById("message").value = "";
                 }).catch((error) => {
                     document.getElementById("out").innerText = "message error: " + error;
@@ -135,7 +176,7 @@
                         let output;
                         if(VERSION==serverV.val()){
                             output = messages.map(msg => (msg.user=="SERVER")?`<span>${msg.formattime}</span><br><server>SERVER: ${msg.message}</server>`:`<span>${msg.formattime}</span><br><b>${msg.user}</b>: ${msg.message}`).join('<br><br>');
-                            if(NOTIFICATIONS){
+                            if(NOTIFICATIONS&&messages[messages.length-1].user!=ACCOUNT){
                                 document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
                                 sendNotification("Weirdos Chat",messages[messages.length-1].user+": "+messages[messages.length-1].message)
                             }
@@ -185,7 +226,7 @@
                                     i--
                                 }
                             }
-                            document.getElementById("users").innerHTML = `Active users (${usersList.length})<br>`+ usersList.map(user => (user.user==ACCOUNT||user.user.includes(totallyrandomnumber))?`<b>${user.user}</b><br>`:`${user.user}<br>`).join("");
+                            // document.getElementById("users").innerHTML = `Active users (${usersList.length})<br>`+ usersList.map(user => (user.user==ACCOUNT||user.user.includes(totallyrandomnumber))?`<b>${user.user}</b><br>`:`${user.user}<br>`).join("");
                         } else {
                             document.getElementById("users").innerHTML = "No active users";
                         }
@@ -199,16 +240,6 @@
                 }
             };
 
-            window.openDM = function(targetdm){
-                if(onSnapshotDM()!=null){onSnapshotDM();}
-                OPENDM = targetdm;
-                onSnapshotDM = onSnapshot(doc(fs, "dms", OPENDM), (doc) => {
-                    document.getElementById("users").innerText = ("Current data: ", doc.data());
-                });
-
-                //stop listening:
-                //onSnapshotDM();
-            }
             window.writeFirestore = function(col, docum, mssg){
                 const theRef = doc(fs, col, docum);
                 setDoc(theRef, mssg) 
@@ -249,7 +280,6 @@
                     }
                     const user = docResp.data();
                     if(user.username == name && user.password == pass){
-                        console.log(user.password)
                         document.getElementById("LoginProb").innerText = "Logged In, Redirecting";
                         setCookie("USERNAME",name)
                         setCookie("PASSWORD",pass)
