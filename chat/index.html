@@ -5,13 +5,17 @@
     </header>
     <body>
         <div id="chat" style="top:10px;position:absolute;overflow:scroll;height:90%;width:1000px;background-color:white;"><br>Loading messages...</div>
-        <input style="bottom:10px;left:10px;position:absolute;width:800px;" id="message" />
+        <div id="title" style="position:absolute;top:10px;left:8px;font-size:30px;width:90%;background-color:white;">Loading name...</div>
+        <input style="bottom:10px;left:10px;position:absolute;width:800px;" id="message" tabindex="-1" placeholder="send something..."/>
         <button style="bottom:10px;left:840px;position:absolute;" onclick='sendRelay();'>send</button>
         <div style="bottom:10px;position:absolute;right:0;"id="out">not read</div>
         <button style="bottom:30px;position:absolute;right:0;"onclick="document.getElementById('out').innerText='';">ok bro idc</button>
         <div id="users" style="right:40px;position:absolute;">Loading users....</div>
         <button id="enable" style="position:absolute;bottom:60px;right:10px;" onclick="notifyRelay(this)">Toggle notifications (off)</button>
-        <!-- <button id="enable" style="position:absolute;bottom:90px;right:10px;" onclick="dmRelayTemp()">dm test</button> -->
+        <button id="opendm" style="position:absolute;bottom:90px;right:10px;" onclick="dmRelayTemp();document.getElementById('dmtarget').value=''">Open DM</button>
+        <button id="opendm" style="position:absolute;bottom:120px;right:10px;" onclick="goToPublic()">Go to Public</button>
+        <input id="dmtarget" style="position:absolute;bottom:90px;right:85px;" tabindex="-1" placeholder="enter username to dm"/>
+        <div id="fade"style="background-color:rgba(10,10,10,0.7);position:fixed;top:0;left:0;width:100%;height:100%;"></div>
         <div id="login" class="LoginBox">
             <div id="LoginProb"></div>
             <div class="LoginText" style="font-size:25px;">Login</div>
@@ -40,22 +44,33 @@
             const VERSION = "v0.4.1"//be sure to update this
 
             let NOTIFICATIONS = false;    
-            let OPENDM = "";
+            let OPENCHAT = "messages/";
             let ACCOUNT = "";
-            let notfirstdm = false;
+            let DMTARGET = ""
             let totallyrandomnumber = Math.floor(Math.random()*100000)
+            let chaturl = ""
+            const searchParams = new URLSearchParams(window.location.search);
+            if(searchParams.has("c")){chaturl = searchParams.get("c")}
             document.getElementById('message').addEventListener('keydown',function(event){
-                if(event.key=='Enter'){sendMessage(Date.now()+ACCOUNT, ACCOUNT,document.getElementById("message").value)}
+                if(event.key=='Enter'){sendRelay()}
             });
 
+            //house of cards
             import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
             import { getDatabase, ref, set, get, child, onValue, remove} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
             import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
             import { getFirestore, doc, setDoc, getDocs, getDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
             import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
             window.notifyRelay =function(ele){(ele.textContent=='Toggle notifications (on)')?ele.textContent='Toggle notifications (off)':ele.textContent='Toggle notifications (on)';NOTIFICATIONS = ele.textContent=='Toggle notifications (on)';if(NOTIFICATIONS){sendNotification('Weirdos Chat','Notifications have been allowed')}else{sendNotification('Weirdos Chat','Notifications have been disabled and you won\'t get any until you reenable them.')}}
-            window.sendRelay = function(){sendMessage(Date.now()+ACCOUNT, ACCOUNT,document.getElementById("message").value);}
-            window.dmRelayTemp =function(){getMessages("dms/noah/testuser")}
+            window.sendRelay = function(){
+                sendMessage(OPENCHAT+Date.now()+ACCOUNT,ACCOUNT,document.getElementById("message").value);
+                if(OPENCHAT=="dms/"+ACCOUNT+"/"+DMTARGET+"/"){
+                    sendMessage("dms/"+DMTARGET+"/"+ACCOUNT+"/"+Date.now()+ACCOUNT,ACCOUNT,document.getElementById("message").value);
+                }
+            }
+            window.dmRelayTemp =function(){if(document.getElementById('dmtarget').value!=''&&document.getElementById('dmtarget').value!=ACCOUNT){DMTARGET=document.getElementById('dmtarget').value;OPENCHAT="dms/"+ACCOUNT+"/"+DMTARGET+"/";switchChat(OPENCHAT)}}//OPENCHAT="messages/";
+            window.goToPublic = function(){OPENCHAT="messages/";switchChat(OPENCHAT)}
+            
             //im not scared of you
             const firebaseConfig = {
                 apiKey: "AIzaSyA6fn7YEU96gExWkm8NCCd2fD2M0QLh0Uo",
@@ -71,7 +86,7 @@
             const db = getDatabase(app);
             const fs = getFirestore(app);
             const auth = getAuth(app);
-
+// setInterval(()=>{document.getElementById("users").textContent = OPENCHAT},100);
             //haha abuse of errors lmao
             window.isValidURL = function(url) {
                 try {
@@ -92,8 +107,8 @@
                     }
                 }
                 var lowest = 0;
-                for (var i=1;i<n.length;i++) {
-                    if (n[i] < n[lowest]) lowest = i;
+                for(var i=1;i<n.length;i++){
+                    if(n[i]<n[lowest]) lowest = i;
                 }
                 return o[lowest];
             }
@@ -114,13 +129,13 @@
                         document.getElementById("out").innerText = "url noped "+ suspectedlink;
                     }
                 }
-                set(ref(db, 'messages/' + messageid), {
+                set(ref(db, messageid), {
                     message:message,
                     user:name,
                     time:Date.now(),
                     formattime:new Date(Date.now()).toLocaleDateString("en-US")+" "+new Date(Date.now()).toLocaleTimeString("en-US")
                 }).then(() => {
-                    document.getElementById("out").innerText = "Write successful!";
+                    // document.getElementById("out").innerText = "Write successful!";
                     document.getElementById("message").value = "";
                 }).catch((error) => {
                     document.getElementById("out").innerText = "message error: " + error;
@@ -156,8 +171,10 @@
             };
             //This function reads and updates the value whenever it changes
             window.getMessages = async function(userId) {
-                onValue(ref(db, userId), async (snapshot) => {
+                window.stopListening = onValue(ref(db, userId), async (snapshot) => {
                     if (snapshot.exists()) {
+                        //temp title functionality. improve later
+                        if(userId.substring(0,2)=="dm"){document.getElementById('title').innerText = "DM with "+DMTARGET}else{document.getElementById('title').innerText = "Public"}
                         const data = snapshot.val();
                         let messages = [];
                         Object.entries(data).forEach(([key, value]) => {
@@ -177,7 +194,7 @@
                         if(VERSION==serverV.val()){
                             output = messages.map(msg => (msg.user=="SERVER")?`<span>${msg.formattime}</span><br><server>SERVER: ${msg.message}</server>`:`<span>${msg.formattime}</span><br><b>${msg.user}</b>: ${msg.message}`).join('<br><br>');
                             if(NOTIFICATIONS&&messages[messages.length-1].user!=ACCOUNT){
-                                document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
+                                // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
                                 sendNotification("Weirdos Chat",messages[messages.length-1].user+": "+messages[messages.length-1].message)
                             }
                         }else{
@@ -199,6 +216,13 @@
                     .catch((error) => {
                         document.getElementById("out").innerText = ("Error removing: ", error);
                     });
+            }
+            window.switchChat = function(chat) {
+                if(window.stopListening){
+                    window.stopListening();
+                    window.stopListening = null;
+                }
+                window.getMessages(chat);
             }
             window.checkin = async function(name){
                 if(name==""){
@@ -285,6 +309,9 @@
                         setCookie("PASSWORD",pass)
                         ACCOUNT = name;
                         document.getElementById("login").style.display = "none"
+                        document.getElementById("fade").style.display = "none"
+                        document.getElementById("dmtarget").tabindex = 5;
+                        document.getElementById("message").tabindex = 3;
                         updateFirestore("users", document.getElementById("LoginName").value, {
                             lastsignin:Date.now()
                         });
@@ -381,7 +408,7 @@
                 }
             }, 10000);
 
-            getMessages('messages');
+            getMessages(OPENCHAT);
         </script>
     </body>
 </html>
