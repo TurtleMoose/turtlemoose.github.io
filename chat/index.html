@@ -4,7 +4,7 @@
         <title>Weirdos Chat</title>
     </header>
     <body>
-        <div id="chat" style="top:43px;position:absolute;overflow:scroll;height:86%;width:1000px;background-color:white;"><br>Loading messages...</div>
+        <div id="chat" style="top:43px;position:absolute;overflow-y:scroll;overflow-x:hidden;height:86%;width:1000px;background-color:white;"><br>Loading messages...</div>
         <div id="title" style="position:absolute;top:10px;left:8px;font-size:30px;width:90%;background-color:white;">Loading name...</div>
         <input style="bottom:10px;left:10px;position:absolute;width:800px;" id="message" tabindex="-1" placeholder="send something..."/>
         <button style="bottom:10px;left:840px;position:absolute;" onclick='sendRelay();'>send</button>
@@ -43,7 +43,7 @@
             <button id="LoginButton" class="LoginButton" onclick="handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)">Login</button>
         </div>
         <script type="module">
-            const VERSION = "v0.5"//be sure to update this
+            const VERSION = "v0.5.2"//be sure to update this
 
             let NOTIFICATIONS = false;    
             let OPENCHAT = "messages/";
