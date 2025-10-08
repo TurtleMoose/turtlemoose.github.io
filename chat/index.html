@@ -14,6 +14,8 @@
         <button id="enable" style="position:absolute;bottom:60px;right:10px;" onclick="notifyRelay(this)">Toggle notifications (off)</button>
         <button id="opendm" style="position:absolute;bottom:90px;right:10px;" onclick="dmRelayTemp();document.getElementById('dmtarget').value=''">Open DM</button>
         <button style="position:absolute;bottom:120px;right:10px;" onclick="goToPublic()">Go to Public</button>
+        <div style="position:absolute;bottom:54%;right:60px;">login issues?</div>
+        <button style="position:absolute;bottom:50%;right:50px;" onclick="cookieRelay()">Clear Cookies</button>
         <input id="dmtarget" style="position:absolute;bottom:90px;right:85px;" tabindex="-1" placeholder="enter username to dm"/>
         <div id="fade"style="background-color:rgba(10,10,10,0.7);position:fixed;top:0;left:0;width:100%;height:100%;"></div>
         <div id="login" class="LoginBox">
@@ -70,7 +72,8 @@
             }
             window.dmRelayTemp =function(){if(document.getElementById('dmtarget').value!=''&&document.getElementById('dmtarget').value!=ACCOUNT){DMTARGET=document.getElementById('dmtarget').value;OPENCHAT="dms/"+ACCOUNT+"/"+DMTARGET+"/";switchChat(OPENCHAT)}}//OPENCHAT="messages/";
             window.goToPublic = function(){OPENCHAT="messages/";switchChat(OPENCHAT)}
-
+            window.cookieRelay = function(){setCookie("USERNAME", "");setCookie("PASSWORD", "");window.location.reload()}
+            
             //im not scared of you
             const firebaseConfig = {
                 apiKey: "AIzaSyA6fn7YEU96gExWkm8NCCd2fD2M0QLh0Uo",
