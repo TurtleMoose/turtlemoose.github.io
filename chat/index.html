@@ -236,8 +236,8 @@
             }
             window.switchChat = function(chat) {
                 if(window.stopListening){
-                    // window.stopListening();
-                    // window.stopListening = null;
+                    window.stopListening();
+                    window.stopListening = null;
                 }
                 window.getMessages(chat);
             }
