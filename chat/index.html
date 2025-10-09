@@ -224,7 +224,7 @@
                             set(ref(db, "pubmeta/"+ACCOUNT), {
                                 time:Date.now()
                             }).then(() => {
-                                document.getElementById("out").innerText = "metadata stored";
+                                // document.getElementById("out").innerText = "metadata stored";
                             }).catch((error) => {
                                 document.getElementById("out").innerText = "metadata error: " + error;
                             });
