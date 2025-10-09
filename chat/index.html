@@ -188,6 +188,15 @@
                             document.getElementById('title').innerText = "DM with "+DMTARGET
                         }else{
                             document.getElementById('title').innerText = "Public"
+                            if(ACCOUNT!=""){
+                                set(ref(db, "pubmeta/"+ACCOUNT), {
+                                    time:Date.now()
+                                }).then(() => {
+                                    document.getElementById("out").innerText = "metadata stored";
+                                }).catch((error) => {
+                                    document.getElementById("out").innerText = "metadata error: " + error;
+                                });
+                            }
                         }
                         const data = snapshot.val();
                         let messages = [];
@@ -207,7 +216,8 @@
                         let output;
                         if(VERSION==serverV.val()){
                             output = messages.map(msg => (msg.user=="SERVER")?`<span>${msg.formattime}</span><br><server>SERVER: ${msg.message}</server>`:`<span>${msg.formattime}</span><br><b>${msg.user}</b>: ${msg.message}`).join('<br><br>');
-                            if(NOTIFICATIONS&&messages[messages.length-1].user!=ACCOUNT){
+                            const tmstmp = await getOnce("pubmeta/"+ACCOUNT+"/")
+                            if(NOTIFICATIONS&&messages[messages.length-1].user!=ACCOUNT&&tmstmp.val()<messages[messages.length-1].time){
                                 // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
                                 sendNotification("Weirdos Chat",messages[messages.length-1].user+": "+messages[messages.length-1].message)
                             }
