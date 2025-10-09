@@ -188,15 +188,6 @@
                             document.getElementById('title').innerText = "DM with "+DMTARGET
                         }else{
                             document.getElementById('title').innerText = "Public"
-                            if(ACCOUNT!=""){
-                                set(ref(db, "pubmeta/"+ACCOUNT), {
-                                    time:Date.now()
-                                }).then(() => {
-                                    document.getElementById("out").innerText = "metadata stored";
-                                }).catch((error) => {
-                                    document.getElementById("out").innerText = "metadata error: " + error;
-                                });
-                            }
                         }
                         const data = snapshot.val();
                         let messages = [];
@@ -216,22 +207,35 @@
                         let output;
                         if(VERSION==serverV.val()){
                             output = messages.map(msg => (msg.user=="SERVER")?`<span>${msg.formattime}</span><br><server>SERVER: ${msg.message}</server>`:`<span>${msg.formattime}</span><br><b>${msg.user}</b>: ${msg.message}`).join('<br><br>');
-                            const tmstmp = await getOnce("pubmeta/"+ACCOUNT+"/")
-                            if(NOTIFICATIONS&&messages[messages.length-1].user!=ACCOUNT&&tmstmp.val()<messages[messages.length-1].time){
+
+                            if(NOTIFICATIONS&&messages[messages.length-1].user!=ACCOUNT){
+                                const tmstmp = await getOnce("pubmeta/"+ACCOUNT+"/")
                                 // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
-                                sendNotification("Weirdos Chat",messages[messages.length-1].user+": "+messages[messages.length-1].message)
+                                document.getElementById("out").innerText = tmstmp.val().time+">"+messages[messages.length-1].time
+                                if(tmstmp.val().time<messages[messages.length-1].time){
+                                    document.getElementById("out").innerText = tmstmp.val().time+"<"+messages[messages.length-1].time
+                                    sendNotification("Weirdos Chat",messages[messages.length-1].user+": "+messages[messages.length-1].message)
+                                }
                             }
                         }else{
                             output = `<br><b>please reload to get the newest version of the site</b><br><br>(Current version: ${VERSION}, Newest Version: ${serverV.val()})`
                         }
-
+                        if(ACCOUNT!=""){
+                            set(ref(db, "pubmeta/"+ACCOUNT), {
+                                time:Date.now()
+                            }).then(() => {
+                                document.getElementById("out").innerText = "metadata stored";
+                            }).catch((error) => {
+                                document.getElementById("out").innerText = "metadata error: " + error;
+                            });
+                        }
                         document.getElementById("chat").innerHTML = output;
                         document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
                     } else {
                         document.getElementById("out").innerText = "No data there";
-                        document.getElementById("chat").innerHTML = "This dm may not exist or has not been started yet.<br><br>if the username entered is correct, make the first message."
-                        sendMessage("dms/"+ACCOUNT+"/"+DMTARGET+"/", ACCOUNT, "created this dm")
-                        sendMessage("dms/"+DMTARGET+"/"+ACCOUNT+"/", ACCOUNT, "created this dm")
+                        document.getElementById("chat").innerHTML = "This chat may not exist or has not been started yet.<br><br>if the username entered is correct, make the first message."
+                        // sendMessage("dms/"+ACCOUNT+"/"+DMTARGET+"/", ACCOUNT, "created this dm")
+                        // sendMessage("dms/"+DMTARGET+"/"+ACCOUNT+"/", ACCOUNT, "created this dm")
                     }
                 });
             };
