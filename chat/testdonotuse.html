@@ -2,7 +2,7 @@
 <html>
     <header>
         <title>Weirdos Chat</title>
-        <!-- <link href="https://db.onlinewebfonts.com/c/8423e89fe6027206a7babdb7e77da56f?family=Crocante+W01" rel="stylesheet"> -->
+        <link href="https://db.onlinewebfonts.com/c/8423e89fe6027206a7babdb7e77da56f?family=Crocante+W01" rel="stylesheet">
     </header>
     <body>
         <!-- <body style="font-family:Crocante W01;"> -->
@@ -149,7 +149,8 @@
                 return o[lowest];
             }
             window.sendMessage = function(messageid, name, message) {
-                if(document.getElementById("message").value.includes("wingdings")){document.body.style.fontFamily="Wingdings";}
+                if(document.getElementById("message").value.toLowerCase().includes("wingdings")){document.body.style.fontFamily="Wingdings";}
+                if(document.getElementById("message").value.toLowerCase().includes("crocante")){document.body.style.fontFamily="Crocante W01";}
                 if(messageid==""||name==""||message==""){document.getElementById("out").innerText = "something is blank";return;}
                 //link thingy hope it works
                 if(message.includes("http")){
@@ -218,58 +219,60 @@
                 if(dmtry!=""){OPENCHAT="dms/"+ACCOUNT+"/"+dmtry+"/"}
                 const dataDM = ACCOUNTDMS[ACCOUNT]
                 //Object.keys(JSON.parse(JSON.stringify(data)))//.length;
-                
+
                 let listOfDMOutputs = []
                 //gotta add the loop to go through all of them
-                let TEMPDMTARG = "noah"
+                let TEMPDMTARG = "test"
+                let listofthingiesidk = Object.keys(JSON.parse(JSON.stringify(dataDM)))
                 const serverV = await getOnce("version");
                 try{
-                for(var i=0;i<Object.keys(JSON.parse(JSON.stringify(dataDM))).length;i++){
-                    let messages = [];
-                    Object.entries(dataDM[Object.keys(JSON.parse(JSON.stringify(dataDM)))[i]]).forEach(([key, value]) => {
-                        if (value && value.user && value.message && value.time) {
-                            messages.push({
-                                user: value.user,
-                                message: value.message,
-                                time: value.time,
-                                formattime: value.formattime
-                            });
-                        }
-                    });
-                    messages.sort((a, b) => b.time - a.time);
-                    messages.reverse();
-                    
-                    let output;
-                    // }catch(error){document.getElementById("out").innerText = error}
-                    if(VERSION==serverV.val()){
-                        output = messages.map(msg => (msg.user=="SERVER")?`<span>${msg.formattime}</span><br><server>SERVER: ${msg.message}</server>`:`<span>${msg.formattime}</span><br><b>${msg.user}</b>: ${msg.message}`).join('<br><br>');
-
-                        if(NOTIFICATIONS&&messages[messages.length-1].user!=ACCOUNT){
-                            const tmstmp = await getOnce("pubmeta/"+ACCOUNT+"/")
-                            // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
-                            document.getElementById("out").innerText = tmstmp.val().time+">"+messages[messages.length-1].time
-                            if(tmstmp.val().time<messages[messages.length-1].time){
-                                document.getElementById("out").innerText = tmstmp.val().time+"<"+messages[messages.length-1].time
-                                sendNotification("Weirdos Chat DMs",messages[messages.length-1].user+": "+messages[messages.length-1].message)
+                    for(var i=0;i<listofthingiesidk.length;i++){
+                        let messages = [];
+                        Object.entries(dataDM[Object.keys(JSON.parse(JSON.stringify(dataDM)))[i]]).forEach(([key, value]) => {
+                            if (value && value.user && value.message && value.time) {
+                                messages.push({
+                                    user: value.user,
+                                    message: value.message,
+                                    time: value.time,
+                                    formattime: value.formattime
+                                });
                             }
-                        }
-                    }else{
-                        output = `<br><b>please reload to get the newest version of the site</b><br><br>(Current version: ${VERSION}, Newest Version: ${serverV.val()})`
-                    }
-                    if(ACCOUNT!=""){
-                        set(ref(db, "pubmeta/"+ACCOUNT), {
-                            time:Date.now()
-                        }).then(() => {
-                            // document.getElementById("out").innerText = "metadata stored";
-                        }).catch((error) => {
-                            document.getElementById("out").innerText = "metadata error: " + error;
                         });
+                        messages.sort((a, b) => b.time - a.time);
+                        messages.reverse();
+
+                        let output;
+                        // }catch(error){document.getElementById("out").innerText = error}
+                        if(VERSION==serverV.val()){
+                            output = messages.map(msg => (msg.user=="SERVER")?`<span>${msg.formattime}</span><br><server>SERVER: ${msg.message}</server>`:`<span>${msg.formattime}</span><br><b>${msg.user}</b>: ${msg.message}`).join('<br><br>');
+
+                            if(NOTIFICATIONS&&messages[messages.length-1].user!=ACCOUNT){
+                                const tmstmp = await getOnce("pubmeta/"+ACCOUNT+"/")
+                                // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
+                                document.getElementById("out").innerText = tmstmp.val().time+">"+messages[messages.length-1].time+" dm "+DMTARGET
+                                if(tmstmp.val().time<messages[messages.length-1].time){
+                                    document.getElementById("out").innerText = tmstmp.val().time+"<"+messages[messages.length-1].time+" dm "+DMTARGET
+                                    sendNotification("Weirdos Chat DMs",messages[messages.length-1].user+": "+messages[messages.length-1].message)
+                                    if(ACCOUNT!=""&&DMTARGET==listofthingiesidk[i]){
+                                        set(ref(db, "pubmeta/"+ACCOUNT), {
+                                            time:Date.now()
+                                        }).then(() => {
+                                            // document.getElementById("out").innerText = "metadata stored";
+                                        }).catch((error) => {
+                                            document.getElementById("out").innerText = "metadata error: " + error;
+                                        });
+                                    }
+                                }
+                            }
+                        }else{
+                            output = `<br><b>please reload to get the newest version of the site</b><br><br>(Current version: ${VERSION}, Newest Version: ${serverV.val()})`
+                        }
+                        listOfDMOutputs.push(output)
                     }
-                    listOfDMOutputs.push(output)
-                }
-                    }catch(error){
+                }catch(error){
                     document.getElementById("out").innerText = error
-                    }
+                }
+
                 const dataPM = PUBLICMESSAGES
                 let Pmessages = [];
                 Object.entries(dataPM).forEach(([key, value]) => {
@@ -291,9 +294,9 @@
                     if(NOTIFICATIONS&&Pmessages[Pmessages.length-1].user!=ACCOUNT){
                         const tmstmp = await getOnce("pubmeta/"+ACCOUNT+"/")
                         // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
-                        document.getElementById("out").innerText = tmstmp.val().time+">"+Pmessages[Pmessages.length-1].time
+                        document.getElementById("out").innerText = tmstmp.val().time+">"+Pmessages[Pmessages.length-1].time+" public"
                         if(tmstmp.val().time<Pmessages[Pmessages.length-1].time){
-                            document.getElementById("out").innerText = tmstmp.val().time+"<"+Pmessages[Pmessages.length-1].time
+                            document.getElementById("out").innerText = tmstmp.val().time+"<"+Pmessages[Pmessages.length-1].time+" public"
                             sendNotification("Weirdos Chat Public",Pmessages[Pmessages.length-1].user+": "+Pmessages[Pmessages.length-1].message)
                         }
                     }
@@ -531,7 +534,7 @@
             if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
                 handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));
             }
-            // handleLogin("testuser","password");
+            handleLogin("testuser","password");
             // Start auto check-in every 10 seconds
             setTimeout(()=>{checkin(ACCOUNT)},1000);
             setInterval(() => {
