@@ -191,7 +191,7 @@
                         document.getElementById("out").innerText = "url noped "+ suspectedlink;
                     }
                 }
-
+                updateChatButtons()
                 set(ref(db, messageid), {
                     message:message,
                     user:name,
@@ -248,7 +248,8 @@
                 if(dataDM!=undefined){
                     listofthingiesidk = Object.keys(dataDM);
                 }
-                godhelpme = [false, false, false, false, false];
+                godhelpme = []
+                for(var i=0;i<listofthingiesidk.length;i++){godhelpme.push(false)}
 
                 for(var i=0;i<listofthingiesidk.length;i++){
                     const messages = [];
@@ -271,11 +272,13 @@
                         }
                     }
                 }
+                let svd = document.getElementById("chats").scrollHeight;
                 let result = listofthingiesidk.map((item, i)=>{
                     // if(i==list.length-1){return item;}
-                    return "<button onclick=\""+'DMTARGET=\''+item+'\';OPENCHAT=\'dms/'+ACCOUNT+'/'+item+'/\';switchChat(OPENCHAT,\''+item+'\');godhelpme['+i+']=false;"'+">"+((godhelpme[i])?"<b>":"")+"DM with "+item+((godhelpme[i])?"</b>":"")+"</button><br>"
+                    return "<button onclick=\""+'DMTARGET=\''+item+'\';OPENCHAT=\'dms/'+ACCOUNT+'/'+item+'/\';switchChat(OPENCHAT,\''+item+'\');;godhelpme['+i+']=false;"'+">"+((godhelpme[i])?"<b>":"")+"DM with "+item+((godhelpme[i])?"</b>":"")+"</button><br>"
                 }).join("");
-                document.getElementById("chats").innerHTML = "Available Chats<br><button onclick=\"OPENCHAT='messages/';goToPublic()\">Public</button><br>"+result
+                document.getElementById("chats").innerHTML = "Available Chats<br><button onclick=\"OPENCHAT='messages/';goToPublic();\">Public</button><br>"+result
+                doucment.getElementById("chats").scrollHeight = svd;
             }
             window.switchChat = async function(userId, dmtry){
                 // try{
@@ -291,8 +294,8 @@
                 if(dataDM!=undefined){
                     listofthingiesidk = Object.keys(JSON.parse(JSON.stringify(dataDM)));
                 }
-                // let godhelpme = []
-                godhelpme = [false, false, false, false, false];
+                godhelpme = []
+                for(var i=0;i<listofthingiesidk.length;i++){godhelpme.push(false)}
                 const serverV = await getOnce("version");
                 try{
                     let testnum = 0;let testnum2 = 0;let testnum3 = 0;let testnum4=0;
@@ -335,7 +338,7 @@
                             }
                             if(ACCOUNT!=""&&DMTARGET==listofthingiesidk[i]){
                                 set(ref(db, "dmmeta/"+ACCOUNT+"/"+listofthingiesidk[i]), {
-                                    time:Date.now()-1000
+                                    time:Date.now()
                                 }).then(() => {
                                     // document.getElementById("out").innerText = "metadata stored";
                                 }).catch((error) => {
@@ -346,6 +349,7 @@
                             output = `<br><b>please reload to get the newest version of the site</b><br><br>(Current version: ${VERSION}, Newest Version: ${serverV.val()})`
                         }
                         listOfDMOutputs.push(output)
+                        updateChatButtons()
                     }
                     document.getElementById("new").innerText = testnum+"\n"+testnum2+"\n"+testnum3+"\n"+testnum4
                 }catch(error){
@@ -413,7 +417,7 @@
                     // if(i==list.length-1){return item;}
                     return "<button onclick=\""+'DMTARGET=\''+item+'\';OPENCHAT=\'dms/'+ACCOUNT+'/'+item+'/\';switchChat(OPENCHAT,\''+item+'\');godhelpme['+i+']=false;"'+">"+((godhelpme[i])?"<b>":"")+"DM with "+item+((godhelpme[i])?"</b>":"")+"</button><br>"
                 }).join("");
-                document.getElementById("chats").innerHTML = "Available Chats<br><button onclick=\"OPENCHAT='messages/';goToPublic()\">Public</button><br>"+result
+                document.getElementById("chats").innerHTML = "Available Chats<br><button onclick=\"OPENCHAT='messages/';goToPublic();\">Public</button><br>"+result
                 document.getElementById("out").innerHTML = godhelpme
             }
             window.getMessages = async function(userId) {
@@ -423,8 +427,6 @@
                         if(OPENCHAT=="messages/"){
                             switchChat(OPENCHAT, "")
                         }
-                        setTimeout(()=>{updateChatButtons()},900);
-
                     } else {
                         document.getElementById("out").innerText = "No data there";
                         // document.getElementById("chat").innerHTML = "This chat may not exist or has not been started yet.<br><br>if the username entered is correct, make the first message."
@@ -543,6 +545,7 @@
                             .catch((error) => {
                                 document.getElementById("out").innerText = "SIWEAP "+error;
                             });
+                        updateChatButtons()
                     }else{
                         document.getElementById("LoginProb").innerText = "Incorrect password";
                     }
