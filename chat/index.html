@@ -329,7 +329,7 @@
                             // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
                             if(tmstmp!=false){
                                 document.getElementById("out").innerText += "\n"+tmstmp.val().time+">"+messages[messages.length-1].time+" dm "+DMTARGET
-                                if(tmstmp.val().time-1000<messages[messages.length-1].time){
+                                if(tmstmp.val().time<messages[messages.length-1].time){
                                     document.getElementById("out").innerText += "\n"+ tmstmp.val().time+"<"+messages[messages.length-1].time+" dm "+DMTARGET
                                     if(DMTARGET!=listofthingiesidk[i]){
                                         // godhelpme[i] = true
