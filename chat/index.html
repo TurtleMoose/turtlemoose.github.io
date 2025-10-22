@@ -17,7 +17,7 @@
             <button style="bottom:30px;position:absolute;right:10px;"onclick="document.getElementById('out').innerText='';">ok bro idc</button>
             <div id="users" style="left:10px;top:10px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;background-color:lightgray;">Loading users....</div>
             <div id="chats" style="left:10px;top:120px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;background-color:lightgray;">Available Chats
-                <br><button onclick="OPENCHAT='messages/';switchChat('messages/')">Public</button>
+                <br><button onclick="OPENCHAT='messages/';goToPublic()">Public</button>
             </div>
             <button id="enable" style="position:absolute;bottom:60px;right:10px;" onclick="notifyRelay(this)">Toggle notifications (off)</button>
             <button id="opendm" style="position:absolute;bottom:90px;right:10px;" onclick="dmRelayTemp();document.getElementById('dmtarget').value=''">Open DM</button>
@@ -255,7 +255,10 @@
             window.updateChatButtons = async function() {
                 const dataDM = ACCOUNTDMS[ACCOUNT];
                 const serverV = await getOnce("version");
-                const listofthingiesidk = Object.keys(dataDM);
+                const listofthingiesidk = []
+                if(dataDM!=undefined){
+                    listofthingiesidk = Object.keys(JSON.parse(JSON.stringify(dataDM)))
+                }   
                 godhelpme = []
                 for(var i=0;i<listofthingiesidk.length;i++){godhelpme.push(false);}
 
@@ -273,10 +276,22 @@
                     });
                     messages.sort((a, b) => b.time - a.time);
                     messages.reverse();
-                    if (VERSION == serverV.val() && messages.length > 0) {
+                    if (VERSION == serverV.val() && messages.length > 0){
                         const tmstmp = await getOnce("dmmeta/" + ACCOUNT + "/" + listofthingiesidk[i] + "/");
-                        if (tmstmp.val().time < messages[messages.length - 1].time&&DMTARGET!=listofthingiesidk[i]) {
-                            godhelpme[i] = true
+                        if(tmstmp==false){
+                            set(ref(db, "dmmeta/"+ACCOUNT+"/"+listofthingiesidk[i]), {
+                                time:Date.now()
+                            }).then(() => {
+                                if (tmstmp.val().time < messages[messages.length - 1].time&&DMTARGET!=listofthingiesidk[i]) {
+                                    godhelpme[i] = true
+                                }
+                            }).catch((error) => {
+                                document.getElementById("out").innerText = "metadata error: " + error;
+                            });
+                        }else{
+                            if (tmstmp.val().time < messages[messages.length - 1].time&&DMTARGET!=listofthingiesidk[i]) {
+                                godhelpme[i] = true
+                            }
                         }
                     }
                 }
@@ -296,7 +311,10 @@
                 let listOfDMOutputs = []
                 //gotta add the loop to go through all of them
                 let TEMPDMTARG = "test"
-                let listofthingiesidk = Object.keys(JSON.parse(JSON.stringify(dataDM)))
+                let listofthingiesidk = []
+                if(dataDM!=undefined){
+                    listofthingiesidk = Object.keys(JSON.parse(JSON.stringify(dataDM)))
+                }
                 godhelpme = []
                 for(var i=0;i<listofthingiesidk.length;i++){godhelpme.push(false);}
                 const serverV = await getOnce("version");
@@ -378,11 +396,13 @@
 
                     if(NOTIFICATIONS&&Pmessages[Pmessages.length-1].user!=ACCOUNT){
                         const tmstmp = await getOnce("pubmeta/"+ACCOUNT+"/")
-                        // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
-                        document.getElementById("out").innerText += "\n"+ tmstmp.val().time+">"+Pmessages[Pmessages.length-1].time+" public"
-                        if(tmstmp.val().time<Pmessages[Pmessages.length-1].time){
-                            document.getElementById("out").innerText += "\n"+ tmstmp.val().time+"<"+Pmessages[Pmessages.length-1].time+" public"
-                            sendNotification("Weirdos Chat Public",Pmessages[Pmessages.length-1].user+": "+Pmessages[Pmessages.length-1].message)
+                        if(tmstmp!=false){
+                            // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
+                            document.getElementById("out").innerText += "\n"+ tmstmp.val().time+">"+Pmessages[Pmessages.length-1].time+" public"
+                            if(tmstmp.val().time<Pmessages[Pmessages.length-1].time){
+                                document.getElementById("out").innerText += "\n"+ tmstmp.val().time+"<"+Pmessages[Pmessages.length-1].time+" public"
+                                sendNotification("Weirdos Chat Public",Pmessages[Pmessages.length-1].user+": "+Pmessages[Pmessages.length-1].message)
+                            }
                         }
                     }
                 }else{
@@ -425,7 +445,7 @@
                         if(OPENCHAT=="messages/"){
                             switchChat(OPENCHAT, "")
                         }
-                        
+
 
                     } else {
                         document.getElementById("out").innerText = "No data there";
@@ -552,6 +572,7 @@
                 }catch(error){
                     document.getElementById("out").innerText = "Login error "+ error;
                 }
+                goToPublic()
                 checkin(ACCOUNT)
             }
 
