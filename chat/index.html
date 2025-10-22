@@ -623,7 +623,7 @@
             if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
                 handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));
             }
-            handleLogin("testuser","password");
+            // handleLogin("testuser","password");
             // Start auto check-in every 10 seconds
             setTimeout(()=>{checkin(ACCOUNT)},1000);
             setInterval(() => {
