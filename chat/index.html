@@ -17,7 +17,7 @@
             <button style="bottom:30px;position:absolute;right:10px;"onclick="document.getElementById('out').innerText='';">ok bro idc</button>
             <div id="users" style="left:10px;top:10px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;background-color:lightgray;">Loading users....</div>
             <div id="chats" style="left:10px;top:120px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;background-color:lightgray;">Available Chats
-                <br><button onclick="OPENCHAT='messages/';goToPublic()">Public</button>
+                <br><button onclick="OPENCHAT='messages/';switchChat('messages/')">Public</button>
             </div>
             <button id="enable" style="position:absolute;bottom:60px;right:10px;" onclick="notifyRelay(this)">Toggle notifications (off)</button>
             <button id="opendm" style="position:absolute;bottom:90px;right:10px;" onclick="dmRelayTemp();document.getElementById('dmtarget').value=''">Open DM</button>
@@ -53,7 +53,7 @@
             <button id="LoginButton" class="LoginButton" onclick="handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)">Login</button>
         </div>
         <script type="module">
-            const VERSION = "v0.6"//be sure to update this
+            const VERSION = "v0.5.2"//be sure to update this
             let PUBLICMESSAGES;
             let ACCOUNTDMS;
             let NOTIFICATIONS = false;    
@@ -240,27 +240,12 @@
                         document.getElementById("out").innerText = ("Error removing: ", error);
                     });
             }
-            window.setDMTimestamp = function(theDmInQuestion){
-                if(ACCOUNT!=""){
-                    set(ref(db, "dmmeta/"+ACCOUNT+"/"+theDmInQuestion+"/"), {
-                        time:Date.now()
-                    }).then(() => {
-                        // document.getElementById("out").innerText = "metadata stored";
-                    }).catch((error) => {
-                        document.getElementById("out").innerText = "metadata error: " + error;
-                    });
-                }
-            }
             let godhelpme = [];
             window.updateChatButtons = async function() {
                 const dataDM = ACCOUNTDMS[ACCOUNT];
                 const serverV = await getOnce("version");
-                const listofthingiesidk = []
-                if(dataDM!=undefined){
-                    listofthingiesidk = Object.keys(JSON.parse(JSON.stringify(dataDM)))
-                }   
-                godhelpme = []
-                for(var i=0;i<listofthingiesidk.length;i++){godhelpme.push(false);}
+                const listofthingiesidk = Object.keys(dataDM);
+                godhelpme = [false, false, false, false, false];
 
                 for(var i=0;i<listofthingiesidk.length;i++){
                     const messages = [];
@@ -276,28 +261,16 @@
                     });
                     messages.sort((a, b) => b.time - a.time);
                     messages.reverse();
-                    if (VERSION == serverV.val() && messages.length > 0){
+                    if (VERSION == serverV.val() && messages.length > 0) {
                         const tmstmp = await getOnce("dmmeta/" + ACCOUNT + "/" + listofthingiesidk[i] + "/");
-                        if(tmstmp==false){
-                            set(ref(db, "dmmeta/"+ACCOUNT+"/"+listofthingiesidk[i]), {
-                                time:Date.now()
-                            }).then(() => {
-                                if (tmstmp.val().time < messages[messages.length - 1].time&&DMTARGET!=listofthingiesidk[i]) {
-                                    godhelpme[i] = true
-                                }
-                            }).catch((error) => {
-                                document.getElementById("out").innerText = "metadata error: " + error;
-                            });
-                        }else{
-                            if (tmstmp.val().time < messages[messages.length - 1].time&&DMTARGET!=listofthingiesidk[i]) {
-                                godhelpme[i] = true
-                            }
+                        if (tmstmp.val().time < messages[messages.length - 1].time&&DMTARGET!=listofthingiesidk[i]) {
+                            godhelpme[i] = true
                         }
                     }
                 }
                 let result = listofthingiesidk.map((item, i)=>{
                     // if(i==list.length-1){return item;}
-                    return "<button onclick=\""+'DMTARGET=\''+item+'\';OPENCHAT=\'dms/'+ACCOUNT+'/'+item+'/\';switchChat(OPENCHAT,\''+item+'\');godhelpme['+i+']=false;setDMTimestamp(\''+item+'\')"'+">"+((godhelpme[i])?"<b>":"")+"DM with "+item+((godhelpme[i])?"</b>":"")+"</button><br>"
+                    return "<button onclick=\""+'DMTARGET=\''+item+'\';OPENCHAT=\'dms/'+ACCOUNT+'/'+item+'/\';switchChat(OPENCHAT,\''+item+'\');godhelpme['+i+']=false;"'+">"+((godhelpme[i])?"<b>":"")+"DM with "+item+((godhelpme[i])?"</b>":"")+"</button><br>"
                 }).join("");
                 document.getElementById("chats").innerHTML = "Available Chats<br><button onclick=\"OPENCHAT='messages/';goToPublic()\">Public</button><br>"+result
             }
@@ -311,12 +284,9 @@
                 let listOfDMOutputs = []
                 //gotta add the loop to go through all of them
                 let TEMPDMTARG = "test"
-                let listofthingiesidk = []
-                if(dataDM!=undefined){
-                    listofthingiesidk = Object.keys(JSON.parse(JSON.stringify(dataDM)))
-                }
-                godhelpme = []
-                for(var i=0;i<listofthingiesidk.length;i++){godhelpme.push(false);}
+                let listofthingiesidk = Object.keys(JSON.parse(JSON.stringify(dataDM)))
+                // let godhelpme = []
+                godhelpme = [false, false, false, false, false];
                 const serverV = await getOnce("version");
                 try{
                     let testnum = 0;let testnum2 = 0;let testnum3 = 0;let testnum4=0;
@@ -347,10 +317,10 @@
                             // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
                             if(tmstmp!=false){
                                 document.getElementById("out").innerText += "\n"+tmstmp.val().time+">"+messages[messages.length-1].time+" dm "+DMTARGET
-                                if(tmstmp.val().time<messages[messages.length-1].time){
+                                if(tmstmp.val().time-1000<messages[messages.length-1].time){
                                     document.getElementById("out").innerText += "\n"+ tmstmp.val().time+"<"+messages[messages.length-1].time+" dm "+DMTARGET
                                     if(DMTARGET!=listofthingiesidk[i]){
-                                        // godhelpme[i] = true
+                                        godhelpme[i] = true
                                     }
                                     // sendNotification("Weirdos Chat DMs",messages[messages.length-1].user+": "+messages[messages.length-1].message)
                                     testnum4++
@@ -359,7 +329,7 @@
                             }
                             if(ACCOUNT!=""&&DMTARGET==listofthingiesidk[i]){
                                 set(ref(db, "dmmeta/"+ACCOUNT+"/"+listofthingiesidk[i]), {
-                                    time:Date.now()
+                                    time:Date.now()-1000
                                 }).then(() => {
                                     // document.getElementById("out").innerText = "metadata stored";
                                 }).catch((error) => {
@@ -396,13 +366,11 @@
 
                     if(NOTIFICATIONS&&Pmessages[Pmessages.length-1].user!=ACCOUNT){
                         const tmstmp = await getOnce("pubmeta/"+ACCOUNT+"/")
-                        if(tmstmp!=false){
-                            // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
-                            document.getElementById("out").innerText += "\n"+ tmstmp.val().time+">"+Pmessages[Pmessages.length-1].time+" public"
-                            if(tmstmp.val().time<Pmessages[Pmessages.length-1].time){
-                                document.getElementById("out").innerText += "\n"+ tmstmp.val().time+"<"+Pmessages[Pmessages.length-1].time+" public"
-                                sendNotification("Weirdos Chat Public",Pmessages[Pmessages.length-1].user+": "+Pmessages[Pmessages.length-1].message)
-                            }
+                        // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
+                        document.getElementById("out").innerText += "\n"+ tmstmp.val().time+">"+Pmessages[Pmessages.length-1].time+" public"
+                        if(tmstmp.val().time<Pmessages[Pmessages.length-1].time){
+                            document.getElementById("out").innerText += "\n"+ tmstmp.val().time+"<"+Pmessages[Pmessages.length-1].time+" public"
+                            sendNotification("Weirdos Chat Public",Pmessages[Pmessages.length-1].user+": "+Pmessages[Pmessages.length-1].message)
                         }
                     }
                 }else{
@@ -432,7 +400,7 @@
                 let list = Object.keys(JSON.parse(JSON.stringify(ACCOUNTDMS[ACCOUNT])));
                 let result = list.map((item, i)=>{
                     // if(i==list.length-1){return item;}
-                    return "<button onclick=\""+'DMTARGET=\''+item+'\';OPENCHAT=\'dms/'+ACCOUNT+'/'+item+'/\';switchChat(OPENCHAT,\''+item+'\');godhelpme['+i+']=false;setDMTimestamp(\''+item+'\')"'+">"+((godhelpme[i])?"<b>":"")+"DM with "+item+((godhelpme[i])?"</b>":"")+"</button><br>"
+                    return "<button onclick=\""+'DMTARGET=\''+item+'\';OPENCHAT=\'dms/'+ACCOUNT+'/'+item+'/\';switchChat(OPENCHAT,\''+item+'\');godhelpme['+i+']=false;"'+">"+((godhelpme[i])?"<b>":"")+"DM with "+item+((godhelpme[i])?"</b>":"")+"</button><br>"
                 }).join("");
                 document.getElementById("chats").innerHTML = "Available Chats<br><button onclick=\"OPENCHAT='messages/';goToPublic()\">Public</button><br>"+result
                 document.getElementById("out").innerHTML = godhelpme
@@ -441,11 +409,10 @@
                 window.publicOnValue = await onValue(ref(db, "messages"), async (snapshot) => {
                     if (snapshot.exists()) {
                         PUBLICMESSAGES = snapshot.val()
-                        await updateChatButtons()
                         if(OPENCHAT=="messages/"){
                             switchChat(OPENCHAT, "")
                         }
-
+                        setTimeout(()=>{updateChatButtons()},900);
 
                     } else {
                         document.getElementById("out").innerText = "No data there";
@@ -457,7 +424,6 @@
                 window.dmsOnValue = onValue(ref(db, "dms/"+ACCOUNT), async (snapshot) => {
                     if (snapshot.exists()) {
                         ACCOUNTDMS = snapshot.val()
-                        await updateChatButtons()
                         if(OPENCHAT.startsWith("dms/")){
                             switchChat(OPENCHAT, DMTARGET)
                         }
@@ -572,7 +538,6 @@
                 }catch(error){
                     document.getElementById("out").innerText = "Login error "+ error;
                 }
-                goToPublic()
                 checkin(ACCOUNT)
             }
 
