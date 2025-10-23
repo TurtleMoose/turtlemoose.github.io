@@ -91,11 +91,13 @@
                     });
                     document.getElementById("fade").style.filter = "invert(0)"
                     document.getElementById("darken").innerText = "Light Mode"
+                    setCookie("dark", "1")
                 }else{
                     document.querySelectorAll('div').forEach(function(div) {
                         div.style.filter = 'invert(0)';
                     });
                     document.getElementById("darken").innerText = "Dark Mode"
+                    setCookie("dark", "0")
                 }
             }
             //im not scared of you
@@ -581,7 +583,10 @@
                         .catch((error) => {
                             document.getElementById("out").innerText = "CUWEAP "+error;
                         });
-                    handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value);
+                    await handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)
+                        .then((d)=>{
+                            window.location.reload();
+                        });
                 }catch(error){
                     document.getElementById("out").innerText = "Sign up error: "+error;
                 }
@@ -625,7 +630,8 @@
             }
             // handleLogin("testuser","password");
             // Start auto check-in every 10 seconds
-            setTimeout(()=>{checkin(ACCOUNT)},1000);
+
+            setTimeout(()=>{checkin(ACCOUNT)},500);
             setInterval(() => {
                 if(document.hasFocus()){
                     checkin(ACCOUNT);
@@ -634,8 +640,10 @@
             setInterval(() => {
                 document.getElementById("ocb").innerText = OPENCHAT;
             }, 100);
-            getMessages(OPENCHAT);
-
+            getMessages("messages/");
+            if(getCookie("dark")=="1"){
+                darkMode();
+            }
         </script>
     </body>
 </html>
