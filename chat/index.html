@@ -17,7 +17,7 @@
             <button style="bottom:30px;position:absolute;right:10px;"onclick="document.getElementById('out').innerText='';">ok bro idc</button>
             <div id="users" style="left:10px;top:10px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;background-color:lightgray;">Loading users....</div>
             <div id="chats" style="left:10px;top:120px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;background-color:lightgray;">Available Chats
-                <br><button onclick="OPENCHAT='messages/';goToPublic()">Public</button>
+                <br><button class="CB" onclick="OPENCHAT='messages/';goToPublic()">Public</button>
             </div>
             <button id="enable" style="position:absolute;bottom:60px;right:10px;" onclick="notifyRelay(this)">Toggle notifications (off)</button>
             <button id="opendm" style="position:absolute;bottom:90px;right:10px;" onclick="dmRelayTemp();document.getElementById('dmtarget').value=''">Open DM</button>
@@ -86,15 +86,22 @@
             window.cookieRelay = function(){setCookie("USERNAME", "");setCookie("PASSWORD", "");window.location.reload()}
             window.darkMode = function(){
                 if(document.getElementById("chat").style.filter!="invert(1)"){
-                    document.querySelectorAll('div').forEach(function(div) {
+                    document.querySelectorAll('div').forEach(div => {
                         div.style.filter = 'invert(1)';
+                    });
+                    document.querySelectorAll('.CB').forEach(element => {
+                        element.style.filter = 'invert(1)';
                     });
                     document.getElementById("fade").style.filter = "invert(0)"
                     document.getElementById("darken").innerText = "Light Mode"
                     setCookie("dark", "1")
                 }else{
-                    document.querySelectorAll('div').forEach(function(div) {
+                    document.querySelectorAll('div').forEach(div => {
                         div.style.filter = 'invert(0)';
+                    });
+
+                    document.querySelectorAll('.CB').forEach(element => {
+                        element.style.filter = 'invert(0)';
                     });
                     document.getElementById("darken").innerText = "Dark Mode"
                     setCookie("dark", "0")
@@ -181,16 +188,20 @@
                 }
                 //link thingy hope it works
                 if(message.includes("http")){
-                    let endpos = message.indexOf(" ", message.indexOf("http"));
-                    if(endpos === -1){
-                        endpos = message.length;
-                    }
-                    let suspectedlink = message.substring(message.indexOf("http"), endpos);
-                    if(isValidURL(suspectedlink)){
-                        document.getElementById("out").innerText = "url worked "+ suspectedlink;
-                        message = message.substring(0,message.indexOf("http"))+"<a target=\"_blank\" rel=\"noopener noreferrer\" href=\""+suspectedlink+"\">"+suspectedlink+"</a>"+message.substring(endpos)
-                    } else {
-                        document.getElementById("out").innerText = "url noped "+ suspectedlink;
+                    if(message.substring(message.indexOf("http")-11,message.indexOf("http"))=="ignorelink?"){
+                        message = message.substring(0, message.indexOf("http")-11)+message.substring(message.indexOf("http"))
+                    }else{
+                        let endpos = message.indexOf(" ", message.indexOf("http"));
+                        if(endpos === -1){
+                            endpos = message.length;
+                        }
+                        let suspectedlink = message.substring(message.indexOf("http"), endpos);
+                        if(isValidURL(suspectedlink)){
+                            document.getElementById("out").innerText = "url worked "+ message.substring(0, message.indexOf("http")-11)+message.substring(message.indexOf("http"))//suspectedlink;
+                            message = message.substring(0,message.indexOf("http"))+"<a target=\"_blank\" rel=\"noopener noreferrer\" href=\""+suspectedlink+"\">"+suspectedlink+"</a>"+message.substring(endpos)
+                        } else {
+                            document.getElementById("out").innerText = "url noped "+ suspectedlink;
+                        }
                     }
                 }
                 updateChatButtons()
@@ -277,10 +288,10 @@
                 let svd = document.getElementById("chats").scrollHeight;
                 let result = listofthingiesidk.map((item, i)=>{
                     // if(i==list.length-1){return item;}
-                    return "<button onclick=\""+'DMTARGET=\''+item+'\';OPENCHAT=\'dms/'+ACCOUNT+'/'+item+'/\';switchChat(OPENCHAT,\''+item+'\');;godhelpme['+i+']=false;"'+">"+((godhelpme[i])?"<b>":"")+"DM with "+item+((godhelpme[i])?"</b>":"")+"</button><br>"
+                    return "<button class=\"CB\" onclick=\""+'DMTARGET=\''+item+'\';OPENCHAT=\'dms/'+ACCOUNT+'/'+item+'/\';switchChat(OPENCHAT,\''+item+'\');;godhelpme['+i+']=false;"'+">"+((godhelpme[i])?"<b>":"")+"DM with "+item+((godhelpme[i])?"</b>":"")+"</button><br>"
                 }).join("");
-                document.getElementById("chats").innerHTML = "Available Chats<br><button onclick=\"OPENCHAT='messages/';goToPublic();\">Public</button><br>"+result
-                doucment.getElementById("chats").scrollHeight = svd;
+                document.getElementById("chats").innerHTML = "Available Chats<br><button class=\"CB\" onclick=\"OPENCHAT='messages/';goToPublic();\">Public</button><br>"+result
+                document.getElementById("chats").scrollHeight = svd;
             }
             window.switchChat = async function(userId, dmtry){
                 // try{
@@ -316,7 +327,7 @@
                         });
                         messages.sort((a, b) => b.time - a.time);
                         messages.reverse();
-                        document.getElementById("out").innerHTML = godhelpme
+                        // document.getElementById("out").innerHTML = godhelpme
                         let output;
                         // }catch(error){document.getElementById("out").innerText = error}
                         if(VERSION==serverV.val()){
@@ -327,9 +338,9 @@
                             const tmstmp = await getOnce("dmmeta/"+ACCOUNT+"/"+listofthingiesidk[i]+"/")
                             // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
                             if(tmstmp!=false){
-                                document.getElementById("out").innerText += "\n"+tmstmp.val().time+">"+messages[messages.length-1].time+" dm "+DMTARGET
+                                document.getElementById("out").innerText = "\n"+tmstmp.val().time+">"+messages[messages.length-1].time+" dm "+DMTARGET
                                 if(tmstmp.val().time-1000<messages[messages.length-1].time){
-                                    document.getElementById("out").innerText += "\n"+ tmstmp.val().time+"<"+messages[messages.length-1].time+" dm "+DMTARGET
+                                    document.getElementById("out").innerText = "\n"+ tmstmp.val().time+"<"+messages[messages.length-1].time+" dm "+DMTARGET
                                     if(DMTARGET!=listofthingiesidk[i]){
                                         godhelpme[i] = true
                                     }
@@ -357,7 +368,7 @@
                 }catch(error){
                     document.getElementById("out").innerText = error
                 }
-                document.getElementById("out").innerHTML = godhelpme
+                // document.getElementById("out").innerHTML = godhelpme
                 const dataPM = PUBLICMESSAGES
                 let Pmessages = [];
                 Object.entries(dataPM).forEach(([key, value]) => {
@@ -380,9 +391,9 @@
                         const tmstmp = await getOnce("pubmeta/"+ACCOUNT+"/")
                         if(tmstmp!=false){
                             // document.getElementById("out").innerText = messages[messages.length-1].user+": "+messages[messages.length-1].message
-                            document.getElementById("out").innerText += "\n"+ tmstmp.val().time+">"+Pmessages[Pmessages.length-1].time+" public"
+                            document.getElementById("out").innerText = "\n"+ tmstmp.val().time+">"+Pmessages[Pmessages.length-1].time+" public"
                             if(tmstmp.val().time<Pmessages[Pmessages.length-1].time){
-                                document.getElementById("out").innerText += "\n"+ tmstmp.val().time+"<"+Pmessages[Pmessages.length-1].time+" public"
+                                document.getElementById("out").innerText = "\n"+ tmstmp.val().time+"<"+Pmessages[Pmessages.length-1].time+" public"
                                 sendNotification("Weirdos Chat Public",Pmessages[Pmessages.length-1].user+": "+Pmessages[Pmessages.length-1].message)
                             }
                         }
@@ -390,7 +401,7 @@
                 }else{
                     Poutput = `<br><b>please reload to get the newest version of the site</b><br><br>(Current version: ${VERSION}, Newest Version: ${serverV.val()})`
                 }
-                document.getElementById("out").innerHTML = godhelpme
+                // document.getElementById("out").innerHTML = godhelpme
                 if(ACCOUNT!=""){
                     set(ref(db, "pubmeta/"+ACCOUNT), {
                         time:Date.now()
@@ -410,17 +421,17 @@
                     document.getElementById("chat").innerHTML = Poutput;
                     document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
                 }
-                document.getElementById("out").innerHTML = godhelpme
+                // document.getElementById("out").innerHTML = godhelpme
                 let list = []
                 if(ACCOUNTDMS[ACCOUNT]!=undefined){
                     listofthingiesidk = Object.keys(JSON.parse(JSON.stringify(dataDM)));
                 }
                 let result = list.map((item, i)=>{
                     // if(i==list.length-1){return item;}
-                    return "<button onclick=\""+'DMTARGET=\''+item+'\';OPENCHAT=\'dms/'+ACCOUNT+'/'+item+'/\';switchChat(OPENCHAT,\''+item+'\');godhelpme['+i+']=false;"'+">"+((godhelpme[i])?"<b>":"")+"DM with "+item+((godhelpme[i])?"</b>":"")+"</button><br>"
+                    return "<button class=\"CB\" onclick=\""+'DMTARGET=\''+item+'\';OPENCHAT=\'dms/'+ACCOUNT+'/'+item+'/\';switchChat(OPENCHAT,\''+item+'\');godhelpme['+i+']=false;"'+">"+((godhelpme[i])?"<b>":"")+"DM with "+item+((godhelpme[i])?"</b>":"")+"</button><br>"
                 }).join("");
-                document.getElementById("chats").innerHTML = "Available Chats<br><button onclick=\"OPENCHAT='messages/';goToPublic();\">Public</button><br>"+result
-                document.getElementById("out").innerHTML = godhelpme
+                document.getElementById("chats").innerHTML = "Available Chats<br><button class=\"CB\" onclick=\"OPENCHAT='messages/';goToPublic();\">Public</button><br>"+result
+                // document.getElementById("out").innerHTML = godhelpme
             }
             window.getMessages = async function(userId) {
                 window.publicOnValue = await onValue(ref(db, "messages"), async (snapshot) => {
