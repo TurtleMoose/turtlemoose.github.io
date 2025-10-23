@@ -15,8 +15,8 @@
             <div style="bottom:10px;position:absolute;right:0;"id="out">not read</div>
             <div style="bottom:10px;position:absolute;left:-20px;"id="new"></div>
             <button style="bottom:30px;position:absolute;right:10px;"onclick="document.getElementById('out').innerText='';">ok bro idc</button>
-            <div id="users" style="left:10px;top:10px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;background-color:lightgray;">Loading users....</div>
-            <div id="chats" style="left:10px;top:120px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;background-color:lightgray;">Available Chats
+            <div id="users" style="left:10px;top:10px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;/*background-color:lightgray;*/">Loading users....</div>
+            <div id="chats" style="left:10px;top:120px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;/*background-color:lightgray;*/">Available Chats
                 <br><button class="CB" onclick="OPENCHAT='messages/';goToPublic()">Public</button>
             </div>
             <button id="enable" style="position:absolute;bottom:60px;right:10px;" onclick="notifyRelay(this)">Toggle notifications (off)</button>
@@ -53,7 +53,7 @@
             <button id="LoginButton" class="LoginButton" onclick="handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)">Login</button>
         </div>
         <script type="module">
-            const VERSION = "v0.6.1"//be sure to update this
+            const VERSION = "v0.6.4"//be sure to update this
             let PUBLICMESSAGES;
             let ACCOUNTDMS;
             let NOTIFICATIONS = false;    
@@ -92,6 +92,8 @@
                     document.querySelectorAll('.CB').forEach(element => {
                         element.style.filter = 'invert(1)';
                     });
+                    document.getElementById("chats").style.color = "white"
+                    document.getElementById("users").style.color = "white"
                     document.getElementById("fade").style.filter = "invert(0)"
                     document.getElementById("darken").innerText = "Light Mode"
                     setCookie("dark", "1")
@@ -103,6 +105,8 @@
                     document.querySelectorAll('.CB').forEach(element => {
                         element.style.filter = 'invert(0)';
                     });
+                    document.getElementById("chats").style.color = "black"
+                    document.getElementById("users").style.color = "black"
                     document.getElementById("darken").innerText = "Dark Mode"
                     setCookie("dark", "0")
                 }
