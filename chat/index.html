@@ -158,12 +158,20 @@
                 }
                 return o[lowest];
             }
+            window.nIndexOf = function(str,sub,n){
+                let i = -1;
+                while(n-->0){
+                    i = str.indexOf(sub, i+1);
+                    if(i==-1){return -1;}
+                }
+                return i;
+            }
             window.sendMessage = function(messageid, name, message) {
                 if(document.getElementById("message").value.toLowerCase().includes("wingdings")){document.body.style.fontFamily="Wingdings";}
                 if(document.getElementById("message").value.toLowerCase().includes("crocante")){document.body.style.fontFamily="Crocante W01";}
                 if(messageid==""||name==""||message==""){document.getElementById("out").innerText = "something is blank";return;}
                 //html tag things
-                for(var i=1;i<message.length;i++){
+                for(var i=0;i<message.length;i++){
                     if(message.charAt(i - 1)=="\\"){
                         message = message.substring(0, i - 1) + message.charAt(i) + message.substring(i + 1);
                         i-=1;
@@ -186,24 +194,17 @@
                         }
                     }
                 }
-                //link thingy hope it works
-                if(message.includes("http")){
-                    if(message.substring(message.indexOf("http")-11,message.indexOf("http"))=="ignorelink?"){
-                        message = message.substring(0, message.indexOf("http")-11)+message.substring(message.indexOf("http"))
-                    }else{
-                        let endpos = message.indexOf(" ", message.indexOf("http"));
-                        if(endpos === -1){
-                            endpos = message.length;
-                        }
-                        let suspectedlink = message.substring(message.indexOf("http"), endpos);
-                        if(isValidURL(suspectedlink)){
-                            document.getElementById("out").innerText = "url worked "+ message.substring(0, message.indexOf("http")-11)+message.substring(message.indexOf("http"))//suspectedlink;
-                            message = message.substring(0,message.indexOf("http"))+"<a target=\"_blank\" rel=\"noopener noreferrer\" href=\""+suspectedlink+"\">"+suspectedlink+"</a>"+message.substring(endpos)
-                        } else {
-                            document.getElementById("out").innerText = "url noped "+ suspectedlink;
-                        }
+                //new link thingy, hope the black magic of regex works
+                message = message.replace(/(?:ignorelink\?)?https?:\/\/[^\s<>,'";[\]{}()\\]+/g, link => {
+                    if(link.startsWith('ignorelink?')){
+                        const cleanLink = link.replace(/^ignorelink\?/,'');
+                        return cleanLink;
                     }
-                }
+                    if(isValidURL(link)){
+                        return `<a target="_blank" rel="noopener noreferrer" href="${link}">${link}</a>`;
+                    }
+                    return link;
+                });
                 updateChatButtons()
                 set(ref(db, messageid), {
                     message:message,
@@ -558,6 +559,7 @@
                             .catch((error) => {
                                 document.getElementById("out").innerText = "SIWEAP "+error;
                             });
+                        await switchChat("messages/", "");
                         updateChatButtons()
                     }else{
                         document.getElementById("LoginProb").innerText = "Incorrect password";
