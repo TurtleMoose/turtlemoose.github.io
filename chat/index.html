@@ -602,7 +602,9 @@
                         });
                     await handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)
                         .then((d)=>{
-                            window.location.reload();
+                            // setTimeout(()=>{
+                            // window.location.reload();
+                            // },1000);
                         });
                 }catch(error){
                     document.getElementById("out").innerText = "Sign up error: "+error;
