@@ -192,7 +192,7 @@
             window.createChat = async function(which){//mess
                 if(which=="dm"&&ACCOUNT!=""&&document.getElementById("newDMText").value!=""&&document.getElementById("newDMText").value!=ACCOUNT){
                     if(await doesUserExist(document.getElementById("newDMText").value)){
-                        if(Object.keys(ACCOUNTDMS[ACCOUNT]).includes(document.getElementById("newDMText").value)){//yay nesting
+                        if(typeof ACCOUNTDMS[ACCOUNT]!="undefined"&& Object.keys(ACCOUNTDMS[ACCOUNT]).includes(document.getElementById("newDMText").value)){//yay nesting
                             document.getElementById("newDMText").placeholder = "already have a dm"
                             setTimeout(()=>{if(document.getElementById("newDMText").placeholder=="already have a dm"){document.getElementById("newDMText").placeholder = ""}},3000);
                             document.getElementById("newDMText").value = ""
