@@ -1,4 +1,14 @@
 <!DOCTYPE html>
+<!--things to do before 10/30:
+- OBFUSCATE API KEY (IMPORTANT)
+- add chats
+- add create chat/dm button
+- add filter
+- LAST STEP: remove unused/unnecessary comments/code
+- improve UI design (optional)
+- add profiles to some extent (optional)
+- add notifs (optional)
+-->
 <html>
     <header>
         <title>Weirdos Chat</title>
@@ -16,14 +26,18 @@
         <button id="aub" onclick="addUserToChat(CHATTARGET, document.getElementById('adduser').value)" style="display:none;top:10px;position:fixed;right:360px;">add</button>
         <div style="background-color:lightgrey;position:fixed;top:0;right:0;height:100%;width:300px;">
             <div style="bottom:10px;position:absolute;right:0;display:none;"id="out">not read</div>
+            <!-- <div style="bottom:10px;position:absolute;left:-20px;"id="new"></div> -->
             <button style="bottom:30px;position:absolute;right:10px;display:none;"onclick="document.getElementById('out').innerText='';">ok bro idc</button>
             <div id="users" style="left:10px;top:10px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;/*background-color:green;">Loading users....</div>
             <div id="dmlist" style="left:10px;top:120px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;/*background-color:green;">DMs</div>
             <div id="chats" style="left:10px;top:240px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;/*background-color:green;">Available Chats
                 <br><button class="CB" onclick="OPENCHAT='messages/';goToPublic()">Public</button>
             </div>
+            <!-- <button id="enable" style="position:absolute;bottom:60px;right:10px;" onclick="notifyRelay(this)">Toggle notifications (off)</button> -->
+            <!-- <button id="opendm" style="position:absolute;bottom:90px;right:10px;" onclick="dmRelayTemp();document.getElementById('dmtarget').value=''">Open DM</button> -->
             <div style="position:absolute;bottom:90px;right:100px;">login issues?</div>
             <button style="position:absolute;bottom:70px;right:90px;" onclick="cookieRelay()">Clear Cookies</button>
+            <!-- <input id="dmtarget" style="position:absolute;bottom:90px;right:85px;" tabindex="-1" placeholder="enter username to dm"/> -->
             <button id="darken" style="position:absolute;bottom:30px;right:10px;" onclick="darkMode()">Dark Mode</button>
             <div id="ocb" style="display:none;position:absolute;bottom:90px;right:10px;">openchat</div>
         </div>
@@ -149,7 +163,7 @@
                 document.getElementById("dmlist").style.height=(window.innerHeight-140)/3+"px"
                 document.getElementById("chats").style.top=((((window.innerHeight-140)/3)*2)+30)+"px"
             }
-            //haha abuse of errors 
+            //haha abuse of errors lmao
             window.isValidURL = function(url){
                 try{
                     new URL(url);
@@ -400,6 +414,8 @@
                             godhelpme[i] = true
                         }
                     }
+                    // listOfChatOutputs.push(Coutput)
+                    // }
                 }
                 const CresultB = await Promise.all(
                     listofchats.map(async (item, i) => {
@@ -416,6 +432,7 @@
                 );
                 const Cresult = CresultB.join("");
                 let Dresult = listofthingiesidk.map((item, i)=>{
+                    // if(i==list.length-1){return item;}
                     return "<button class=\"CB\" onclick=\""+'DMTARGET=\''+item+'\';OPENCHAT=\'dms/'+ACCOUNT+'/'+item+'/\';switchChat(OPENCHAT,\''+item+'\', \'\');updateTS(DMTARGET);godhelpme['+i+']=false;"'+">"+((godhelpme[i])?"<b>":"")+"DM with "+item+((godhelpme[i])?"</b>":"")+"</button><br>"
                 }).join("");
                 let svd = document.getElementById("chats").scrollTop;
@@ -424,6 +441,9 @@
                 let svd2 = document.getElementById("dmlist").scrollTop;
                 document.getElementById("dmlist").innerHTML = "DMs<input id='newDMText' style='right:50px;top:0;width:120px;position:absolute;z-index:10;display:none;'\><button id='newDM' style='z-index:10;right:0;top:0;width:50px;position:absolute;display:none;' onclick='createChat(\"dm\")'>create</button><button class='AB' onmouseenter='this.innerText=\"create dm\"' onmouseleave='this.innerText=\"+\"' onclick='createNew(false)'>+</button><br>"+Dresult
                 document.getElementById("dmlist").scrollTop = svd2;
+            }
+            window.switchChatEnded = function(){
+                //TODO: add loading thing? entirely just a ux thing
             }
             window.switchChat = async function(userId, dmtry,chtry){
                 // try{
@@ -467,7 +487,9 @@
                         });
                         messages.sort((a, b) => b.time - a.time);
                         messages.reverse();
+                        // document.getElementById("out").innerHTML = godhelpme
                         let output;
+                        // }catch(error){document.getElementById("out").innerText = error}
                         if(VERSION==serverV.val()){
                             output = messages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&messages[ind-1].user==msg.user&&messages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=messages.length-1&&messages[ind].user==messages[ind+1].user&&messages[ind].time>messages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
                         }else{
@@ -476,6 +498,7 @@
                         listOfDMOutputs.push(output)
                         updateChatButtons()
                     }
+                    // document.getElementById("new").innerText = testnum+"\n"+testnum2+"\n"+testnum3+"\n"+testnum4
                     if(ACCOUNT!=""&&DMTARGET!=""){
                         set(ref(db, "dmmeta/"+ACCOUNT+"/"+DMTARGET), {
                             time:Date.now()
@@ -491,6 +514,10 @@
 
                 try{
                     for(var i=0;i<listofchats.length;i++){
+                        // const docResp = await readDocument("users", ACCOUNT);
+                        // let thing = ""
+                        // if(!docResp||!docResp.data){/*too bad*/}else{thing = docResp.data().chats}
+                        // if(thing.includes(listofchats[i])){
                         let Cmessages = [];
                         Object.entries(dataChats[Object.keys(dataChats)[i]]).forEach(([key, value]) => {
                             if (value && value.user && value.message && value.time) {
@@ -584,6 +611,7 @@
                     document.getElementById("chat").innerHTML = Poutput;
                     document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
                 }
+                switchChatEnded();
             }
             window.getMessages = async function(userId) {
                 window.publicOnValue = await onValue(ref(db, "messages"), async (snapshot) => {
@@ -617,9 +645,10 @@
                         if(OPENCHAT.startsWith("chats/")){
                             switchChat(OPENCHAT, "", CHATTARGET)
                         }
-                        updateChatButtons().then(()=>{switchChat("messages/","","")})
+                        updateChatButtons().then(()=>{if(OPENCHAT=="messages/"){switchChat("messages/","","")}})
                     } else {
                         document.getElementById("out").innerText = "No data there";
+                        // document.getElementById("chat").innerHTML = "This chat may not exist or has not been started yet.<br><br>if the username entered is correct, make the first message."
                     }
                 });
             };
@@ -709,6 +738,7 @@
                         ACCOUNT = name;
                         document.getElementById("login").style.display = "none"
                         document.getElementById("fade").style.display = "none"
+                        // document.getElementById("dmtarget").tabindex = 5;
                         document.getElementById("message").tabindex = 0;
                         updateFirestore("users", document.getElementById("LoginName").value, {
                             lastsignin:Date.now()
@@ -788,13 +818,14 @@
                 }
                 return "";
             }
-//
+
             window.sendNotification = function(title, text) {
                 if (!("Notification" in window)) {
                     document.getElementById("out").innerText=("This browser does not support notifications.");
                     return;
                 }
                 Notification.requestPermission().then((permission) => {
+                    // document.getElementById("enable").style.display = permission === "granted" ? "none" : "block";
                     const notification = new Notification(title, {body: text});
                 });
             }
@@ -802,8 +833,8 @@
             if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
                 handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));
             }
-
             // Start auto check-in every 10 seconds
+
             setTimeout(()=>{checkin(ACCOUNT)},500);
             setInterval(() => {
                 if(document.hasFocus()){
@@ -903,6 +934,9 @@
     }
     :active.ShowPass{
         background-color:#BBBBBB;
+    }
+    div{
+        /* filter: invert(1); */
     }
     #fade{
         filter: invert(0);
