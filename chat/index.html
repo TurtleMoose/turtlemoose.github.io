@@ -700,7 +700,7 @@
                         if(OPENCHAT.startsWith("chats/")){
                             switchChat(OPENCHAT, "", CHATTARGET)
                         }
-                        updateChatButtons().then(()=>{switchChat("messages/","","")})
+                        updateChatButtons().then(()=>{if(OPENCHAT=="messages/"){switchChat("messages/","","")}})
                     } else {
                         document.getElementById("out").innerText = "No data there";
                         // document.getElementById("chat").innerHTML = "This chat may not exist or has not been started yet.<br><br>if the username entered is correct, make the first message."
@@ -888,7 +888,7 @@
             if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
                 handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));
             }
-            // handleLogin("testuser","password");
+            handleLogin("testuser","password");
             // Start auto check-in every 10 seconds
 
             setTimeout(()=>{checkin(ACCOUNT)},500);
