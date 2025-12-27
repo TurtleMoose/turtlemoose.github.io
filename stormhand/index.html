@@ -1,0 +1,1727 @@
+<html>
+    <body onresize="resizeFOV()" onmousemove="mousePos(event)" onload="paused=false;update();">
+        <canvas style="left:0;top:0;position:fixed;/*cursor:none;*/"id="cnv"></canvas>
+        <div id="p" style="left:0;top:40%;position:fixed;width:100%;height:10%;text-align:center;opacity:0;font-size:40px;font-family:monospace;">paused<br>backtick (`) to resume</div>
+        <div style="position:absolute;left:49.95%;top:49.95%;width:0.1%;height:0.1%;background-color:FFF;"></div>
+        <div id="fps"style="position:absolute;left:0;top:0;">fps</div>
+        <div id="FSW"style="position:absolute;transition:1s;color:FFF;background-color:rgba(0,0,0,0.5);opacity:0;left:40%;top:40;width:20%;text-align:center;">Use Backtick (`) to Enter/Exit Fullscreen</div>
+        <div id="coo"style="position:absolute;left:0;top:20;">coo</div>
+        <div id="tes"style="position:absolute;left:0;top:100;"></div>
+        <div id="ins"style="position:absolute;left:30%;text-align:center;top:0;width:40%;">so basic there's no version<!--WASD to move, arrow keys or mouse rotate, E/Q change fov, 1 for jitter and 2 for shatter, U/I J/K N/M rotate debug--></div>
+    </body>
+
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script>
+        //Key controls
+        let Key = {
+            //KEYBINDS----------------------------------------------------
+            jump: " ",
+            rotateLeft: "ArrowLeft",
+            rotateRight: "ArrowRight",
+            rotateUp: "ArrowUp",
+            rotateDown: "ArrowDown",
+            crouch: "Control",
+            sprint: "Shift",
+            forward: "w",
+            backward: "s",
+            left: "a",
+            right: "d",
+            //all keybinds. you can declare other variables for the same keys if you want to make it more readable.
+            //kind of organized in the layout of a keyboard
+            escape: "Escape", f1: "F1", f2: "F2", f3: "F3", f4: "F4", f5: "F5", f6: "F6", f7: "F7", f8: "F8", f9: "F9", f10: "F10", f11: "F11", f12: "F12", scrollLock: "ScrollLock", pause: "Pause", 
+            tilde: "~", exclamation: "!", at: "@", hash: "#", dollar: "$", percent: "%", carrot: "^", and: "&", asterisk: "*", leftParen: "(", rightParen: ")", underscore: "_", plus: "+",
+            backtick: "`",one: "1", two: "2", three: "3", four: "4", five: "5", six: "6", seven: "7", eight: "8", nine: "9", zero: "0", minus: "-", equals: "=", backspace: "Backspace",
+            insert: "Insert", home: "Home", pageup: "PageUp", delete: "Delete", end: "End", pagedown: "PageDown", numLock: "NumLock",
+            tab: "Tab", q: "q", w: "w", e: "e", r: "r", t: "t", y: "y", u: "u", i: "i", o: "o", p: "p", leftSquare: "[", rightSquare: "]", leftBracket: "{", rightBracket: "}",
+            capsLock: "CapsLock", a: "a", s: "s", d: "d", f: "f", g: "g", h: "h", j: "j", k: "k", l: "l", semicolon: ";", colon: ":", singleQuote: "'", doubleQuote: "\"", bar: "|", backslash: "\\", enter: "Enter",
+            shift: "Shift", z: "z", x: "x", c: "c", v: "v", b: "b", n: "n", m: "m", comma: ",", period: ".",  leftCarrot: "<", rightCarrot: ">", slash: "/", question: "?",
+            control: "Control", meta: "Meta", alt: "Alt", space: " ", menu: "ContextMenu", arrowLeft: "ArrowLeft", arrowRight: "ArrowRight", arrowUp: "ArrowUp", arrowDown: "ArrowDown",
+            //END KEYBINDS------------------------------------------------
+            //the rest of these stay.
+            pressed: {},
+            isDown: function (key){return this.pressed[key.toLowerCase()];},
+            keydown: function (event){this.pressed[event.key.toLowerCase()] = true;},
+            keyup: function (event){delete this.pressed[event.key.toLowerCase()];}
+        }
+        window.addEventListener("keyup", function(event) {Key.keyup(event);});
+        window.addEventListener("keydown", function(event) {Key.keydown(event);});
+        //disables context menu on right click
+        window.addEventListener("contextmenu", e => e.preventDefault());
+        //button things
+        let Mouse = {
+            left: false,
+            middle: false,
+            right: false,
+            x: 0,
+            y: 0
+        }
+        document.addEventListener('mousedown', function(event) {
+            if (event.button === 0) { // left button
+                Mouse.left = true;
+            }else{
+                Mouse.left = false;
+            }
+            if (event.button === 1) { // Middle button
+                Mouse.middle = true;
+            }else{
+                Mouse.middle = false;
+            }
+            if (event.button === 2) { // Right button
+                event.preventDefault();
+                Mouse.right = true;
+            }else{
+                Mouse.right = false;
+            }
+        });
+        document.addEventListener('mouseup', function(event) {
+            if (event.button === 0) { // left button
+                Mouse.left = false;
+            }
+            if (event.button === 1) { // Middle button
+                Mouse.middle = false;
+            }
+            if (event.button === 2) { // Right button
+                event.preventDefault();
+                Mouse.right = false;
+            }
+        });
+    </script>
+    <script>
+        //NEW HAND
+
+
+
+
+//thank you to /u/ivanhoe90 on reddit for initial 3d demo, 
+//thats probably where any useful comments came from
+
+/*
+ok so.
+some notes.
+1.  the camera angle is a lie, it's actually 180 degrees more than whatever is claimed
+      to be the actual number (see where m is declared, somewhere around line 691)
+2.  the positions are all inverted for some reason. when loading any model all the
+      positions are multiplied by -1.
+
+
+everything else is probably a lie too and I hate it
+*/
+//default rendering
+let strokeit = false;//questionable variable name
+let fillit = true;
+let shadeit = true;
+let normalit = false;
+let renderit = false;
+//lighting
+let envLight = [30, 145, 0]
+//out of 1? for the modifier i guess
+let ambLight = 0.25
+//default player fov: the height of the screen is about what you want it to be
+let fov = window.innerHeight;
+//default player movement speed (per frame)
+let playerSpeedFinal = 0.1;
+//helps with sprint or crouch, changing speed, etc
+let playerSpeedCurrent = 0.1;
+//used for gliding stops/starts
+let glideSpeedMod = 0.007;
+let sprintMod = 2;
+let camRotSpeed = 0.05;
+//background color
+let backgroundColor = "#FFFFFF";
+//Where should the player spawn (default is triple 0)
+let playerXspawn = 0, playerYspawn = 0, playerZspawn = 0;
+//unfinished/experimental up/down camera rotation
+let keysormouse = 0;
+//pi goofy things
+let pi = Math.PI;
+let t = pi*2;
+let vertAngle = 0;
+let siT=0,fiT=0,hiT=0,niT=0,riT=0;
+let maxframerate=60;
+let fa = new Array(11).fill(1);
+let stickattack = [true, 0, false, 6, 6];
+let paused = true;
+let numTrisVisible = 0;
+let pitchlimit = 90;
+let loadingcount = 0;
+function mousePos(event) {
+    Mouse.x = event.clientX;
+    Mouse.y = event.clientY;
+}
+// ___________________________________________________________________________________
+//|                stuff to use in another doc                                        |
+//|___________________________________________________________________________________|
+//It is NOT necessary to run this function. There ARE default values, this is for changing it from another file.
+function initialize(px,py,pz,pa,pb,ps,sm,cs,pf,b,mr,s,f,sh,no,pp,kom){
+    setCamPos(px,py,pz);
+    playerXspawn = px;
+    playerYspawn = py;
+    playerZspawn = pz;
+    setCamAngle(pa, pb);
+    camRotSpeed = cs;
+    playerSpeedFinal = ps;
+    sprintMod = sm;
+    fov = pf;
+    backgroundColor = b;
+    maxframerate=mr
+    strokeit = s;
+    fillit = f;
+    shadeit = sh;
+    normalit = no;
+    renderit = !pp;
+    keysormouse = kom;
+}
+function changeCamPos(x,y,z){
+    //move the camera by a specific distance
+    let xchange = x-playerX, zchange = z-playerZ;
+    for(var i=0;i<boxes.length;i++){
+        for(var j=0;j<boxes[i].pnts.length;j+=3){
+            boxes[i].pnts[j]+=xchange;
+        }
+        for(var j=1;j<boxes[i].pnts.length;j+=3){
+            boxes[i].pnts[j]+=ychange;
+        }
+        for(var j=2;j<boxes[i].pnts.length;j+=3){
+            boxes[i].pnts[j]+=zchange;
+        }
+        boxes[i].z+=zchange;
+        boxes[i].x+=xchange;
+        boxes[i].y+=ychange;
+    }
+    playerX += x;
+    playerY += y;
+    playerZ += z;
+}
+function setCamPos(x,y,z){
+    //set camera position
+    let xchange = x-playerX, ychange = y-playerY, zchange = z-playerZ;
+    for(var i=0;i<boxes.length;i++){
+        for(var j=0;j<boxes[i].pnts.length;j+=3){
+            boxes[i].pnts[j]+=xchange;
+        }
+        for(var j=2;j<boxes[i].pnts.length;j+=3){
+            boxes[i].pnts[j]+=zchange;
+        }
+        //tk
+        boxes[i].x+=xchange;
+        boxes[i].z+=zchange;
+        playerY+=ychange;
+
+
+        //  boxes[i].y+=ychange;
+    }
+    for(var i=0;i<boxes.length;i++){
+        for(var j=1;j<boxes[i].pnts.length;j+=3){
+            boxes[i].pnts[j]+=ychange;
+        }
+        boxes[i].y+=ychange;
+    }
+    // for(var i=0;i<withplayer.length;i++){
+    //     for(var j=0;j<boxes[i].pnts.length;j+=3){
+    //         withplayer[i].pnts[j]-=xchange;
+    //     }
+    //     for(var j=2;j<boxes[i].pnts.length;j+=3){
+    //         withplayer[i].pnts[j]-=zchange;
+    //     }
+    // }
+    // for(var i=0;i<withplayer.length;i++){
+    //     for(var j=0;j<boxes[i].pnts.length;j+=3){
+    //         wplaynorot[i].pnts[j]+=xchange;
+    //     }
+    //     for(var j=2;j<boxes[i].pnts.length;j+=3){
+    //         wplaynorot[i].pnts[j]+=zchange;
+    //     }
+    // }
+    //so this made this function work and i just stumbled on it
+    //my best guess is that i forgot how my code worked and that this makes it work
+    playerX = x;
+    //there's no way this will stay working ha ha
+    playerY = y;
+    playerZ = z;
+    //red rover red rover send a pint over
+}
+function setCamAngle(a, b){
+    t = a*(pi/180);
+    vertAngle = b*(pi/180);
+}
+function changeCamAngle(a, b){
+    t += a*(pi/180);
+    vertAngle += b*(pi/180);
+}
+function changeBackgroundColor(c){
+    backgroundColor = c;
+}
+function setFOV(f){
+    fov = f;
+}
+function setBoxPos(box, x, y, z){
+    for(var j=0;j<box.pnts.length;j+=3){
+        box.pnts[j]=x+box.pnts[j]-box.x+playerX;
+    }
+    for(var j=1;j<box.pnts.length;j+=3){
+        box.pnts[j]=y+box.pnts[j]-box.y+playerY;
+    }
+    for(var j=2;j<box.pnts.length;j+=3){
+        box.pnts[j]=z+box.pnts[j]-box.z+playerZ;
+    }
+    box.x=x+playerX;
+    box.y=y+playerY;
+    box.z=z+playerZ;
+}
+//All boxes made go to here
+let boxes = [];
+let stars = []
+//all boxes made with corporeal set to true go to here as well.
+let contact = [];
+let withplayer = [];
+let wplaynorot = [];
+class box {
+    constructor(centerx, centery, centerz, width, height, depth, rotZ, rotX, rotY, color, corporeal, withtheplayer){
+        this.x = centerx*-1; this.y = centery*-1; this.z = centerz*-1;  this.ismodel = false;
+        //here, take miniscule inaccuracies to avoid graphical clipping (it doesn't even work lmao)
+        this.w = width*0.99999999999; this.h = height*0.99999999999; this.d = depth*0.99999999999; this.c = color;
+        this.pnts = [this.x-(this.w/2),this.y-(this.h/2),this.z-(this.d/2),this.x+(this.w/2),this.y-(this.h/2),this.z-(this.d/2),
+                     this.x+(this.w/2),this.y-(this.h/2),this.z+(this.d/2),this.x-(this.w/2),this.y-(this.h/2),this.z+(this.d/2),
+                     this.x-(this.w/2),this.y+(this.h/2),this.z-(this.d/2),this.x+(this.w/2),this.y+(this.h/2),this.z-(this.d/2),
+                     this.x+(this.w/2),this.y+(this.h/2),this.z+(this.d/2),this.x-(this.w/2),this.y+(this.h/2),this.z+(this.d/2)];
+        this.tgls = [0,2,1,  2,0,3,  4,5,6,  6,7,4,  0,1,4,  1,5,4,  1,2,5,  2,6,5,  2,3,6,  3,7,6,  3,0,7,  0,4,7];
+        this.rZ = rotZ; this.rX = rotX; this.rY = rotY; this.rotateZ = rotZ; this.rotateX = rotX; this.rotateY = rotY;
+
+        //TODO: fix this by making them attributes/tags/variables/whatever instead of multiple lists
+        if(corporeal){contact.push(this);} if(withtheplayer==0){boxes.push(this);}else if(withtheplayer==1){withplayer.push(this);boxes.push(this);}else if(withtheplayer==2){wplaynorot.push(this);this.x=0;this.y=0;this.z=0;}else if(withtheplayer==3){withplayer.push(this);wplaynorot.push(this);this.x=0;this.y=0;this.z=0;}
+    }
+    get points(){return this.pnts;}
+    get triangles(){return this.tgls;}
+    get color(){
+        return this.c;
+    }
+    get moddedtgls(){
+        let moddedtgs = [];
+        if(playerY>(this.y+(this.h/2))*-1){
+            //top face
+            moddedtgs.push(0,1,2, 2,3,0);
+        }else if(playerY<(this.y-(this.h/2))*-1){
+            //bottom face
+            moddedtgs.push(4,5,6, 6,7,4);
+        }
+        if(0>(this.x-(this.w/2))*-1){
+            //side face
+            moddedtgs.push(3,0,7, 0,7,4);
+        }else if(0<(this.x+(this.w/2))*-1){
+            //also side face
+            moddedtgs.push(1,2,5, 2,5,6);
+        }
+        if(0>(this.z-(this.d/2))*-1){
+            //back? face
+            moddedtgs.push(0,1,4, 1,4,5);
+        }else if(0<(this.z+(this.d/2))*-1){
+            //front? face
+            moddedtgs.push(2,3,6, 3,6,7);
+        }
+        //TODO: make it so that a perpendicular vector decides if each triangle is visible or not.
+        return this.tgls//moddedtgs;
+    }
+    get distance(){
+        this.dista = Math.sqrt((((this.x*-1))*((this.x*-1)))+
+                               (((this.y*-1))*((this.y*-1)))+
+                               (((this.z*-1))*((this.z*-1))));
+        return this.dista;
+    }
+    set rotateZ(setrot){
+        this.rZ = setrot*(pi/180);
+        for(var i=0;i<this.pnts.length;i+=3){
+            let xdist = this.pnts[i+0]-this.x;
+            let zdist = this.pnts[i+1]-this.y;
+            this.pnts[i+0] = ((Math.cos(this.rZ)*xdist)-(Math.sin(this.rZ)*zdist))+this.x;
+            this.pnts[i+1] = ((Math.cos(this.rZ)*zdist)+(Math.sin(this.rZ)*xdist))+this.y;
+            //    document.getElementById("fps").innerHTML += xdist+" "+zdist+" "+this.pnts[i]+" "+this.pnts[i+2]+"<br>"
+        }
+    }
+    set rotateY(setrot){
+        this.rY = setrot*(pi/180);
+        for(var i=0;i<this.pnts.length;i+=3){
+            let xdist = this.pnts[i+0]-this.x;
+            let zdist = this.pnts[i+2]-this.z;
+            this.pnts[i+0] = ((Math.cos(this.rY)*xdist)-(Math.sin(this.rY)*zdist))+this.x;
+            this.pnts[i+2] = ((Math.cos(this.rY)*zdist)+(Math.sin(this.rY)*xdist))+this.z;
+            //  document.getElementById("tes").innerHTML += this.pnts
+        }
+    }
+    set rotateX(setrot){
+        this.rX = setrot*(pi/180);
+        for(var i=0;i<this.pnts.length;i+=3){
+            let xdist = this.pnts[i+2]-this.z;
+            let zdist = this.pnts[i+1]-this.y;
+            this.pnts[i+2] = ((Math.cos(this.rX)*xdist)-(Math.sin(this.rX)*zdist))+this.z;
+            this.pnts[i+1] = ((Math.cos(this.rX)*zdist)+(Math.sin(this.rX)*xdist))+this.y;
+            //    document.getElementById("fps").innerHTML += xdist+" "+zdist+" "+this.pnts[i]+" "+this.pnts[i+2]+"<br>"
+        }
+    }
+    get getX(){
+        return this.x;
+    }
+    get getY(){
+        return this.y;
+    }
+    get getZ(){
+        return this.z;
+    }
+}
+class model {
+    constructor(x, y, z, rx, ry, rz, sx, sy, sz, triangles, points, color, withtheplayer, isstar){
+        this.x = x*-1; this.y = y*-1; this.z = z*-1; this.ismodel = true;
+        this.tgls = triangles; this.pnts = []; this.c = color;
+        // this.rXY = ; this.rXZ = ; this.rYZ = ;
+        for(var i=0;i<points.length;i+=3){
+            this.pnts[i+0] = (-1*points[i+0]*sx)-x;
+            this.pnts[i+1] = (-1*points[i+1]*sy)-y;
+            this.pnts[i+2] = (-1*points[i+2]*sz)-z;
+        }
+        if(isstar){stars.push(this)}else{
+            if(withtheplayer==0){boxes.push(this);}else if(withtheplayer==1){withplayer.push(this);boxes.push(this);}else if(withtheplayer==2){wplaynorot.push(this);this.x=0;this.y=0;this.z=0;}else if(withtheplayer==3){withplayer.push(this);wplaynorot.push(this);this.x=0;this.y=0;this.z=0;}
+        }
+    }
+    get points(){return this.pnts;}
+    get triangles(){return this.tgls;}
+    get color(){
+        return this.c;
+    }
+    get moddedtgls(){
+        return this.tgls;
+    }
+    get distance(){
+        this.dista = Math.sqrt((((this.x*-1))*((this.x*-1)))+
+                               (((this.y*-1))*((this.y*-1)))+
+                               (((this.z*-1))*((this.z*-1))));
+        return this.dista;
+    }
+    set rotateZ(setrot){
+        this.rZ = setrot*(pi/180);
+        for(var i=0;i<this.pnts.length;i+=3){
+            let xdist = this.pnts[i+0]-this.x;
+            let zdist = this.pnts[i+1]-this.y;
+            this.pnts[i+0] = ((Math.cos(this.rZ)*xdist)-(Math.sin(this.rZ)*zdist))+this.x;
+            this.pnts[i+1] = ((Math.cos(this.rZ)*zdist)+(Math.sin(this.rZ)*xdist))+this.y;
+            //    document.getElementById("fps").innerHTML += xdist+" "+zdist+" "+this.pnts[i]+" "+this.pnts[i+2]+"<br>"
+        }
+    }
+    set rotateY(setrot){
+        this.rY = setrot*(pi/180);
+        for(var i=0;i<this.pnts.length;i+=3){
+            let xdist = this.pnts[i+0]-this.x;
+            let zdist = this.pnts[i+2]-this.z;
+            this.pnts[i+0] = ((Math.cos(this.rY)*xdist)-(Math.sin(this.rY)*zdist))+this.x;
+            this.pnts[i+2] = ((Math.cos(this.rY)*zdist)+(Math.sin(this.rY)*xdist))+this.z;
+            //  document.getElementById("tes").innerHTML += this.pnts
+        }
+    }
+    set rotateX(setrot){
+        this.rX = setrot*(pi/180);
+        for(var i=0;i<this.pnts.length;i+=3){
+            let xdist = this.pnts[i+2]-this.z;
+            let zdist = this.pnts[i+1]-this.y;
+            this.pnts[i+2] = ((Math.cos(this.rX)*xdist)-(Math.sin(this.rX)*zdist))+this.z;
+            this.pnts[i+1] = ((Math.cos(this.rX)*zdist)+(Math.sin(this.rX)*xdist))+this.y;
+            //    document.getElementById("fps").innerHTML += xdist+" "+zdist+" "+this.pnts[i]+" "+this.pnts[i+2]+"<br>"
+        }
+    }
+    get getX(){
+        return this.x;
+    }
+    get getY(){
+        return this.y;
+    }
+    get getZ(){
+        return this.z;
+    }
+}
+function isValidURL(url){
+    try{
+        new URL(url);
+        return true;
+    }catch(err){
+        return false;
+    }
+}
+function loadStar(path, x, y, z, rx, ry, rz, scx, scy, scz, color, wtp, stardis){
+    let text = "";
+    loadingcount++;
+    //get the file
+    fetch(path).then(response =>{
+        if(!response.ok){
+            /*change to console*/
+            test("http problem");
+        }
+        return response.text();
+    })
+        .then(data => {
+            text = data.split(/\r?\n/);
+            //get the data from it
+            if(text[0]!="ply"||text[1]!="format ascii 1.0"){
+                return;
+            }
+            let facenum = -1;
+            let vertexnum = -1;
+            let endnum = -1;
+            //proceed
+            for(var i=0;i<text.length;i++){
+                if(text[i].includes("element vertex")){
+                    vertexnum = parseInt(text[i].substring(14));//yeah sure this should work
+                    i=text.length+1; //hahahhahahha...  ._.
+                }
+            }
+            for(var i=0;i<text.length;i++){
+                if(text[i].includes("element face")){
+                    facenum = parseInt(text[i].substring(12));
+                    i=text.length+1;
+                }
+            }
+            for(var i=0;i<text.length;i++){
+                if(text[i].includes("end_header")){
+                    endnum = i+1;
+                    i=text.length+1;
+                }
+            }
+            console.log(endnum+" "+ vertexnum+" "+  facenum)
+            let vertexes = [];
+            let triangles = [];
+            test(playerX+" "+playerY+" "+playerZ)
+            for(var i=endnum;i<endnum+vertexnum;i++){
+                let temp = text[i].split(" ");
+                test(playerX+" "+playerY+" "+playerZ)
+                vertexes.push(temp[0], temp[1], (parseFloat(temp[2])+stardis))
+            }
+            for(var i=endnum+vertexnum;i<endnum+vertexnum+facenum;i++){
+                let temp = text[i].split(" ");
+                triangles.push(temp[1], temp[2], temp[3])
+            }
+            //TODO: make it return the triangles and vertexes instead of creating it
+            // test(`[${triangles}]`)
+            // return new Promise((resolve)=>{resolve([triangles,vertexes]);});
+            // return ([triangles,vertexes])
+            new model(x,y,z,rx,ry,rz,scx,scy,scz,triangles,vertexes,color,wtp, true)
+            loadingcount--;
+        })
+        .catch(error => {
+            test('Ah crap: '+error);
+        });
+}
+function loadModelFile(path, x, y, z, rx, ry, rz, scx, scy, scz, color, wtp){
+    let text = "";
+    loadingcount++;
+    //get the file
+    fetch(path).then(response =>{
+        if(!response.ok){
+            /*change to console*/
+            test("http problem");
+        }
+        return response.text();
+    })
+        .then(data => {
+            text = data.split(/\r?\n/);
+            //get the data from it
+            if(text[0]!="ply"||text[1]!="format ascii 1.0"){
+                return;
+            }
+            let facenum = -1;
+            let vertexnum = -1;
+            let endnum = -1;
+            //proceed
+            for(var i=0;i<text.length;i++){
+                if(text[i].includes("element vertex")){
+                    vertexnum = parseInt(text[i].substring(14));//yeah sure this should work
+                    i=text.length+1; //hahahhahahha...  ._.
+                }
+            }
+            for(var i=0;i<text.length;i++){
+                if(text[i].includes("element face")){
+                    facenum = parseInt(text[i].substring(12));
+                    i=text.length+1;
+                }
+            }
+            for(var i=0;i<text.length;i++){
+                if(text[i].includes("end_header")){
+                    endnum = i+1;
+                    i=text.length+1;
+                }
+            }
+            console.log(endnum+" "+ vertexnum+" "+  facenum)
+            let vertexes = [];
+            let triangles = [];
+            test(playerX+" "+playerY+" "+playerZ)
+            for(var i=endnum;i<endnum+vertexnum;i++){
+                let temp = text[i].split(" ");
+                test(playerX+" "+playerY+" "+playerZ)
+                vertexes.push(temp[0]-playerX, temp[1]-playerY, temp[2]-playerZ)
+            }
+            for(var i=endnum+vertexnum;i<endnum+vertexnum+facenum;i++){
+                let temp = text[i].split(" ");
+                triangles.push(temp[1], temp[2], temp[3])
+            }
+            //TODO: make it return the triangles and vertexes instead of creating it
+            // test(`[${triangles}]`)
+            // return new Promise((resolve)=>{resolve([triangles,vertexes]);});
+            // return ([triangles,vertexes])
+            new model(x,y,z,rx,ry,rz,scx,scy,scz,triangles,vertexes,color,wtp, false)
+            loadingcount--;
+        })
+        .catch(error => {
+            test('Ah crap: '+error);
+        });
+}
+//some things
+let forward, back, left, right;
+//this might be confusing seeing above, but this is initializing the
+//player coordinates. The coordinates are later set to the spawn area
+//with the setCamPos function. basically it's just BS coming together.
+let playerX = 0, playerY = 0, playerZ = 0;
+let rotUp = false, rotDown = false;
+var cnv = document.getElementById("cnv"), ctx = cnv.getContext("2d");
+cnv.width = window.innerWidth;  cnv.height = window.innerHeight;
+let lasttimeupdate = Date.now();
+let timedifference;
+
+let mousemoveX=0, mousemoveY=0;
+function mousemovement(e) {
+    mousemoveX = e.movementX; 
+    mousemoveY = e.movementY;
+}
+document.addEventListener("mousemove", mousemovement);
+//this is here when the game would start to set the inital points
+setCamPos(playerXspawn, playerYspawn, playerZspawn);
+let listOfColors=""
+fetch("https://yourmodernproblems.com/allcolors.txt").then(response =>{
+    if(!response.ok){
+        test("http problem");
+    }
+    return response.text();
+})
+    .then(data => {
+        listOfColors = data.split("\n")
+        for(var i=0;i<listOfColors.length;i+=2){
+            listOfColors[i] = listOfColors[i].toLowerCase()
+        }
+    }).catch(error =>{
+        test("load colors failed")
+    });
+
+
+let ZW = window.innerWidth;
+let ZH = window.innerHeight;
+let zbuffer = new Float32Array(ZW * ZH);
+
+function clearZBuffer() {
+    zbuffer.fill(Infinity);
+}
+
+let framebuffer = ctx.createImageData(cnv.width, cnv.height);
+let pix = framebuffer.data;   // Uint8ClampedArray
+
+
+update();
+//function to make a mass of smaller boxes, for whatever reason
+function massBox(firstx, firsty, firstz, xdim, ydim, zdim, xval, yval, zval, rotaXY, rotaYZ, rotaXZ, bcolor, corp, sep){
+    let xangle = 1; let yangle = 1; let zangle = 1;
+    if(rotaXZ!=0){xangle = Math.cos(rotaXZ*(pi/180));}
+    if(rotaYZ!=0){yangle = Math.sin(rotaYZ*(pi/180));}
+    if(rotaXY!=0){zangle = Math.sin(rotaXY*(pi/180));}
+    for(var x=0;x<xval;x++){
+        for(var y=0;y<yval;y++){
+            for(var z=0;z<zval;z++){
+                new box(firstx+(xdim*x*xangle),firsty+(ydim*y*yangle),firstz+(zdim*z*zangle),xdim,ydim,zdim,rotaXY,rotaYZ,rotaXZ,bcolor,corp,sep);
+            }
+        }
+    }
+}
+//alternating colors that I used for a specific thing.
+function massBox2c(firstx, firsty, firstz, xdim, ydim, zdim, xval, yval, zval, rotaXY, rotaYZ, rotaXZ, bcolor, colorlen, corp, sep){
+    let xangle = 1; let yangle = 1; let zangle = 1;
+    let i = 0; 
+    if(rotaXZ!=0){xangle = Math.cos(rotaXZ*(pi/180));}
+    if(rotaYZ!=0){yangle = Math.sin(rotaYZ*(pi/180));}
+    if(rotaXY!=0){zangle = Math.sin(rotaXY*(pi/180));}
+    for(var x=0;x<xval;x++){
+        for(var y=0;y<yval;y++){
+            for(var z=0;z<zval;z++){
+                new box(firstx+(xdim*x*xangle),firsty+(ydim*y*yangle),firstz+(zdim*z*zangle),xdim,ydim,zdim,rotaXY,rotaYZ,rotaXZ,bcolor[i%colorlen],corp,sep);
+                i++;
+            }
+        }
+    }
+}
+function update() {
+    if(stars[0]!=undefined&&stars[1]!=undefined){
+        stars[0].rotateY = -0.07
+        stars[0].rotateX = -0.07
+        stars[1].rotateX = -0.1
+    }
+    //test(Mouse.x+" "+Mouse.y)
+    document.getElementById("p").style.opacity=0;
+    cnv.width = window.innerWidth;  cnv.height = window.innerHeight;
+    if(keysormouse==0){
+        if(Key.isDown(Key.rotateLeft)){t-=camRotSpeed;}
+        if(Key.isDown(Key.rotateRight)){t+=camRotSpeed;}
+        if(Key.isDown(Key.rotateUp)){vertAngle+=camRotSpeed;}
+        if(Key.isDown(Key.rotateDown)){vertAngle-=camRotSpeed;}
+    }else{
+        t+=mousemoveX/200;
+        vertAngle-=mousemoveY/200;
+        //reset it
+        mousemoveX = 0;
+        mousemoveY = 0;
+    }
+    if(vertAngle>pitchlimit){
+        vertAngle = pitchlimit;//TODO: why doesn't this work??????
+    }
+    if(vertAngle<(pitchlimit*-1)){
+        vertAngle = pitchlimit*-1;
+    }
+    //TODO: VERY IMPORTANT FIX THE WITHPLAYER STUFF IT'S TERRIBLE
+    //TODO: this would have to be replaced with something for jumping. 
+    if(Key.isDown(Key.e)){playerY+=playerSpeedCurrent;
+                          // for(var i=0;i<withplayer.length;i++){
+                          //     for(var j=1;j<boxes[i].pnts.length;j+=3){
+                          //         withplayer[i].pnts[j]-=playerSpeedCurrent;
+                          //     }
+                          //     withplayer[i].y-=playerSpeedCurrent;
+                          // }
+                          for(var i=0;i<boxes.length;i++){
+                              for(var j=1;j<boxes[i].pnts.length;j+=3){
+                                  boxes[i].pnts[j]+=playerSpeedCurrent;
+                              }
+                              boxes[i].y+=playerSpeedCurrent;
+                          }
+                         }
+    if(Key.isDown(Key.q)){playerY-=playerSpeedCurrent;
+                          // for(var i=0;i<withplayer.length;i++){
+                          //     for(var j=1;j<boxes[i].pnts.length;j+=3){
+                          //         withplayer[i].pnts[j]+=playerSpeedCurrent;
+                          //     }
+                          //     withplayer[i].y+=playerSpeedCurrent;
+                          // }
+                          for(var i=0;i<boxes.length;i++){
+                              for(var j=1;j<boxes[i].pnts.length;j+=3){
+                                  boxes[i].pnts[j]-=playerSpeedCurrent;
+                              }
+                              boxes[i].y-=playerSpeedCurrent;
+                          }
+                         }
+
+    if(Key.isDown(Key.sprint)){playerSpeedCurrent = playerSpeedFinal*sprintMod}else{playerSpeedCurrent = playerSpeedFinal}
+    //TODO: Add crouch
+    if(Key.isDown(Key.crouch)){}
+
+    if(Key.isDown(Key.r)){fov+=10;}
+    if(Key.isDown(Key.f)){fov-=10;}
+    if(Key.isDown(Key.forward)){forward=true;}else{forward=false;}
+    if(Key.isDown(Key.backward)){back=true;}else{back=false;}
+    if(Key.isDown(Key.left)){left=true;}else{left=false;}
+    if(Key.isDown(Key.right)){right=true;}else{right=false;}
+
+    if(Key.isDown(Key.two)){shatter();}
+    if(Key.isDown(Key.u)){for(var i=0;i<boxes.length;i++){boxes[i].rotateZ = 10;}}//Z AXIS
+    if(Key.isDown(Key.i)){for(var i=0;i<boxes.length;i++){boxes[i].rotateZ = -10;}}
+    if(Key.isDown(Key.j)){for(var i=0;i<boxes.length;i++){boxes[i].rotateY = 10;}}//Y AXIS
+    if(Key.isDown(Key.k)){for(var i=0;i<boxes.length;i++){boxes[i].rotateY = -10;}}
+    if(Key.isDown(Key.n)){for(var i=0;i<boxes.length;i++){boxes[i].rotateX = 10;}}//X AXIS
+    if(Key.isDown(Key.m)){for(var i=0;i<boxes.length;i++){boxes[i].rotateX = -10;}}
+
+    if(Key.isDown(Key.t)){envLight[0] -= 5;}//X AXIS
+    if(Key.isDown(Key.y)){envLight[0] += 5;}
+    if(Key.isDown(Key.g)){envLight[1] -= 5;}//Y AXIS
+    if(Key.isDown(Key.h)){envLight[1] += 5;}
+    if(Key.isDown(Key.v)){envLight[2] -= 5;}//Z AXIS
+    if(Key.isDown(Key.b)){envLight[2] += 5;}
+    envLight[0] = (envLight[0]+360)%360
+    envLight[1] = (envLight[1]+360)%360
+    envLight[2] = (envLight[2]+360)%360
+
+    if((Key.isDown(Key.leftBracket)||Key.isDown(Key.leftSquare))&&!siT){strokeit=!strokeit;siT=true;}
+    if((Key.isDown(Key.rightBracket)||Key.isDown(Key.rightSquare))&&!fiT){fillit=!fillit;fiT=true;}
+    if(!(Key.isDown(Key.leftBracket)||Key.isDown(Key.leftSquare))&&siT){siT=false;}
+    if(!(Key.isDown(Key.rightBracket)||Key.isDown(Key.rightSquare))&&fiT){fiT=false;}
+
+    if((Key.isDown(Key.underscore)||Key.isDown(Key.minus))&&!hiT){shadeit=!shadeit;hiT=true;}
+    if((Key.isDown(Key.equals)||Key.isDown(Key.plus))&&!niT){normalit=!normalit;niT=true;}
+    if(!(Key.isDown(Key.underscore)||Key.isDown(Key.minus))&&hiT){hiT=false;}
+    if(!(Key.isDown(Key.equals)||Key.isDown(Key.plus))&&niT){niT=false;}
+
+    if(Key.isDown(Key.backspace)&&!riT){renderit=!renderit;riT=true;}
+    if(!Key.isDown(Key.backspace)&&riT){riT=false;}
+
+    let move = movementXZ(left,right,forward,back,(t*(180/pi)),playerSpeedCurrent);
+    //TODO: add collision (coming back and looking at this... no. not yet. no way josue.)
+    playerX += move[0]; playerZ += move[1];
+    //console.log(Key.pressed);
+    for(var i=0;i<boxes.length;i++){
+        for(var j=0;j<boxes[i].pnts.length;j+=3){
+            boxes[i].pnts[j]+=move[0];
+        }
+        for(var j=2;j<boxes[i].pnts.length;j+=3){
+            boxes[i].pnts[j]+=move[1];
+        }
+        //tk
+        boxes[i].x+=move[0];
+        boxes[i].z+=move[1];
+    }
+    for(var i=0;i<withplayer.length;i++){
+        for(var j=0;j<boxes[i].pnts.length;j+=3){
+            withplayer[i].pnts[j]-=move[0];
+        }
+        for(var j=2;j<boxes[i].pnts.length;j+=3){
+            withplayer[i].pnts[j]-=move[1];
+        }
+        withplayer[i].x-=move[0];
+        withplayer[i].z-=move[1];
+    }
+    for(var i=0;i<wplaynorot.length;i++){
+        for(var j=0;j<boxes[i].pnts.length;j+=3){
+            wplaynorot[i].pnts[j]+=move[0];
+        }
+        for(var j=2;j<boxes[i].pnts.length;j+=3){
+            wplaynorot[i].pnts[j]+=move[1];
+        }
+        wplaynorot[i].x = 0;
+        wplaynorot[i].y = 0.4
+        wplaynorot[i].z = 0;
+    }
+    //weapon I guess? for now it's just the stick
+    //TODO: make this able to be whatever model
+    // note: likely with some kind of tag/attribute thing 
+    if(stickattack[0]){
+        if(Mouse.left){
+            stickattack[0] = false;
+            stickattack[1] = 1;
+            stickattack[2] = false;
+        }
+    }else if(stickattack[1]!=0){
+        if(stickattack[1]<stickattack[4]&&!stickattack[2]){
+            stick.rotateYZ = stickattack[3];
+            stickattack[1]++;
+        }else if(stickattack[1]>0&&stickattack[2]){
+            stick.rotateYZ = -stickattack[3];
+            stickattack[1]--;
+        }else{
+            stickattack[1]--;
+            stickattack[2] = true;
+        }
+    }
+    if(!stickattack[0]&&stickattack[1]==0){
+        stickattack[0] = true;
+    }
+    //camera angle matrix (I'd like to thank wikipedia, chatgpt, and the power of BS for this one)
+    //          kill me.
+    var mat = [t/*+((Key.isDown(Key.c))?0:pi)*/, vertAngle, 0];
+    ctx.clearRect(0, 0, cnv.width, cnv.height);
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0,0,window.innerWidth,window.innerHeight)
+    // let imageData = ctx.getImageData(0,0,window.innerWidth,window.innerHeight);
+    clearZBuffer()
+    //break into triangles
+    let trias = [];
+    for(let i=0;i<boxes.length;i++){
+        for(let j=0;j<boxes[i].moddedtgls.length;j+=3){
+            let x1 = boxes[i].points[(boxes[i].moddedtgls[j+0]*3)+0], y1 = boxes[i].points[(boxes[i].moddedtgls[j+0]*3)+1], z1 = boxes[i].points[(boxes[i].moddedtgls[j+0]*3)+2];
+            let x2 = boxes[i].points[(boxes[i].moddedtgls[j+1]*3)+0], y2 = boxes[i].points[(boxes[i].moddedtgls[j+1]*3)+1], z2 = boxes[i].points[(boxes[i].moddedtgls[j+1]*3)+2];
+            let x3 = boxes[i].points[(boxes[i].moddedtgls[j+2]*3)+0], y3 = boxes[i].points[(boxes[i].moddedtgls[j+2]*3)+1], z3 = boxes[i].points[(boxes[i].moddedtgls[j+2]*3)+2];
+
+            trias.push({
+                dist: //Math.max(
+                    (Math.sqrt((x1*x1)+(y1*y1)+(z1*z1))+
+                     Math.sqrt((x2*x2)+(y2*y2)+(z2*z2))+
+                     Math.sqrt((x3*x3)+(y3*y3)+(z3*z3))
+                    )/3,
+                box: boxes[i],
+                tri: [boxes[i].moddedtgls[j], boxes[i].moddedtgls[j+1], boxes[i].moddedtgls[j+2]],
+                pts: [x1,y1,z1,x2,y2,z2,x3,y3,z3]
+            });
+        }
+    }
+    //sort em
+    trias.sort((a, b) => b.dist - a.dist);
+
+
+    framebuffer = ctx.createImageData(cnv.width, cnv.height);
+    pix = framebuffer.data;   // Uint8ClampedArray
+
+
+
+    for(let i=0;i<stars.length;i++){
+        draw(stars[i].points, stars[i].moddedtgls, mat, stars[i].color, stars[i], undefined);
+    }
+    for (let i=0;i<trias.length;i++){
+        draw(trias[i].box.points, trias[i].tri, mat, trias[i].box.color, trias[i].box, trias[i].pts);
+    }
+    for(let i=0;i<wplaynorot.length;i++){ 
+        let sweapon=Math.sin(0), cweapon=Math.cos(0);
+        draw(wplaynorot[i].points, wplaynorot[i].tgls, [0,0,0], wplaynorot[i].color, wplaynorot[i], undefined);
+    }
+
+    // ctx.putImageData(framebuffer, 0, 0);
+
+    // if(normalit){
+    //     let cen = [0,0,0];
+    //     let normOG = [45,45,45];
+    //     let norm = [cen[0]+normOG[0]*0.2,cen[1]+normOG[1]*0.2,cen[2]+normOG[2]*0.2];
+    //     ctx.beginPath();
+    //     ctx.strokeStyle = "red";
+    //     ctx.moveTo((window.innerWidth/2)+fov*cen[0]/cen[2],(window.innerHeight/2)+fov*cen[1]/cen[2]);
+    //     ctx.lineTo((window.innerWidth/2)+fov*norm[0]/norm[2],(window.innerHeight/2)+fov*norm[1]/norm[2]);
+    //     ctx.stroke();
+    //     ctx.closePath();
+    // }
+
+    // document.getElementById("ins").innerText = envLight
+
+
+
+    //TODO: check if this actually helps or not
+
+    // ctx.drawImage(cnv, 1, 1);
+
+    //performance costs
+
+
+
+
+
+
+
+    //set coo text to coordinates
+    document.getElementById("coo").innerHTML = "X: "+Math.floor(playerX*100)/100+" Y: "+Math.floor(playerY*100)/100+" Z: "+Math.floor(playerZ*100)/100+"<br>Yaw: "+t*(180/pi)+" Pitch: "+vertAngle*(180/pi)+"<br>FOV: "+fov;
+    // ctx.drawImage(cnv, 0.5, 0.5);
+    // if(!document.hasFocus()/*||document.pointerLockElement==null*/){paused = true;}
+    if(!paused){
+        window.requestAnimationFrame(update);
+    }else{
+        pause();
+    }
+    frames();
+}
+let pausedelay = false;
+function pause(){
+    document.getElementById("p").style.opacity=1;
+    frames();
+    if(Key.isUp(Key.escape)){pausedelay = true;}
+    if(Key.isDown(Key.backtick)&&pausedelay){
+        paused = false;
+        pausedelay = false;
+        //togglePointerLock();
+        test("anything");
+        window.requestAnimationFrame(update());
+    }else{
+        window.requestAnimationFrame(pause());
+    }
+}
+function frames(){
+    //Frame counter, i think its something with delta time?
+    timedifference = (Date.now() - lasttimeupdate);
+    while(timedifference<(1000/maxframerate)){timedifference = (Date.now() - lasttimeupdate);}
+    lasttimeupdate = Date.now();
+    //console.log(temptime);
+    var framerate = Math.floor(1000/(timedifference));
+    //this averages it out over the last ten frames for a more readable
+    //output (no flashing when at refresh rate)
+    fa[(fa[0]%10)+1] = framerate;
+    fa[0]++;
+    let average = (fa[1]+fa[2]+fa[3]+fa[4]+fa[5]+fa[6]+fa[7]+fa[8]+fa[9]+fa[10])/10;
+    document.getElementById("fps").textContent = "FPS: "+average+" / Max: "+maxframerate+" / Triangles: "+numTrisVisible;
+    numTrisVisible=0
+}
+function draw(ps, ts, m, C, box, pts) {
+    //funnies
+    // m[0]+=pi
+    // m[0]+=180
+    for(var i=0; i<ts.length; i+=3) {
+        var p0 = ts[i]*3, p1 = ts[i+1]*3, p2=ts[i+2]*3;
+        var a = vertexShader(ps[p0], ps[p0+1], ps[p0+2], m);
+        var b = vertexShader(ps[p1], ps[p1+1], ps[p1+2], m);
+        var c = vertexShader(ps[p2], ps[p2+1], ps[p2+2], m);
+        if(renderit){
+            fragmentShaderOld(a,b,c, C, box, pts, m);   
+        }else{
+            fragmentShader(a,b,c, C, box, pts, m);
+        }
+    }
+}
+function vertexShader(x,y,z, m) {
+    //Yaw Pitch Roll
+    const cosY = Math.cos(m[0]), sinY = Math.sin(m[0]);
+    const cosP = Math.cos(m[1]), sinP = Math.sin(m[1]);
+    const cosR = Math.cos(m[2]), sinR = Math.sin(m[2]);
+
+    const rot = [
+        [cosY*cosR+sinY*sinP*sinR, sinR*cosP, -sinY*cosR+cosY*sinP*sinR],
+        [-cosY*sinR+sinY*sinP*cosR, cosR*cosP, sinR*sinY+cosY*sinP*cosR],
+        [sinY*cosP, -sinP, cosY*cosP]
+    ];
+
+    return [
+        rot[0][0]*x+rot[0][1]*y+rot[0][2]*z,
+        rot[1][0]*x+rot[1][1]*y+rot[1][2]*z,
+        rot[2][0]*x+rot[2][1]*y+rot[2][2]*z
+    ];
+}
+// you can make a Z-buffer, sampling from texture, phong shading... 
+//...not that i know how to do that. i don't even know what phong shading is. (ok i looked it up its just fancy shading) 
+async function fragmentShader(a, b, c, C, box, pts, m) { 
+    var mz = Math.min(a[2],b[2],c[2]); if(mz<0.01)return;
+
+    let sna = fov;
+    let cx = window.innerWidth/2;
+    let cy = window.innerHeight/2;
+
+    const x0 = cx+sna*(a[0]/a[2]);
+    const y0 = cy+sna*(a[1]/a[2]);
+    const x1 = cx+sna*(b[0]/b[2]);
+    const y1 = cy+sna*(b[1]/b[2]);
+    const x2 = cx+sna*(c[0]/c[2]);
+    const y2 = cy+sna*(c[1]/c[2]);
+
+    const minX = Math.max(0,Math.floor(Math.min(x0,x1,x2)));
+    const maxX = Math.min(window.innerWidth-1,Math.ceil(Math.max(x0,x1,x2)));
+    const minY = Math.max(0,Math.floor(Math.min(y0,y1,y2)));
+    const maxY = Math.min(window.innerHeight-1,Math.ceil(Math.max(y0,y1,y2)));
+
+    //barycentric crap
+    const denom = ((y1-y2)*(x0-x2)+(x2-x1)*(y0-y2));
+
+    if(denom==0)return;
+
+    let normal = triNormal(
+        [pts[0], pts[1], pts[2]],
+        [pts[3], pts[4], pts[5]],
+        [pts[6], pts[7], pts[8]]
+    );
+    if(!shadeit&&fillit){
+        ctx.fillStyle = C
+    }
+    if(shadeit){
+        const L = yawPitchToDir(envLight[0], envLight[1]);
+        let base = getBaseColor(C);
+        let shaded = applyLighting(base, normal, L, 0.2);
+        ctx.fillStyle = `rgba(${shaded.r},${shaded.g},${shaded.b},${shaded.a})`;
+    }
+    numTrisVisible++;
+    if(shadeit||fillit){
+        for (let y = minY; y <= maxY; y++) {
+            for (let x = minX; x <= maxX; x++) {
+
+                // Barycentric coordinates
+                const w1 = ((y1 - y2)*(x - x2) + (x2 - x1)*(y - y2)) / denom;
+                const w2 = ((y2 - y0)*(x - x2) + (x0 - x2)*(y - y2)) / denom;
+                const w3 = 1 - w1 - w2;
+
+                // Pixel outside triangle
+                if (w1 < 0 || w2 < 0 || w3 < 0) continue;
+
+                // Interpolated depth
+                const depth = w1*a[2] + w2*b[2] + w3*c[2];
+
+                const idx = y * ZW + x;
+
+                // Z-buffer test
+                if (depth >= zbuffer[idx]) continue;
+
+                // PASS — write pixel & depth
+                zbuffer[idx] = depth;
+
+                //                 const i = (y * ZW + x) * 4;
+                // pix[i]   = shaded.r;
+                // pix[i+1] = shaded.g;
+                // pix[i+2] = shaded.b;
+                // pix[i+3] = shaded.a;
+                ctx.fillRect(x, y, 1, 1);
+            }
+        }
+    }
+    if(strokeit){
+        ctx.beginPath();
+        ctx.moveTo(x0,y0);  ctx.lineTo(x1,y1);  ctx.lineTo(x2,y2);  ctx.lineTo(x0,y0);
+        ctx.stroke();
+    }
+    if(normalit){
+        let cen = [(a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3];
+        let normOG = getNormal(a, b, c, true);
+        let normB = [cen[0]+normOG[0]*0.2,cen[1]+normOG[1]*0.2,cen[2]+normOG[2]*0.2];
+        ctx.beginPath();
+        ctx.strokeStyle = "red";
+        ctx.moveTo((window.innerWidth/2)+fov*cen[0]/cen[2],(window.innerHeight/2)+fov*cen[1]/cen[2]);
+        ctx.lineTo((window.innerWidth/2)+fov*normB[0]/normB[2],(window.innerHeight/2)+fov*normB[1]/normB[2]);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.fillStyle = "red"
+        ctx.beginPath();
+        ctx.rect(((window.innerWidth/2)+fov*cen[0]/cen[2])-2,((window.innerHeight/2)+fov*cen[1]/cen[2])-2,4,4)
+        ctx.closePath();
+        ctx.fill();
+        ctx.font = "10px Arial";
+        ctx.fillStyle = "black";
+        let angnorm = getNormal(a,b,c)
+        let fp = 2
+        let ntyp = normalToYawPitch(normOG)
+        ctx.fillText(angnorm[0].toFixed(fp)+", "+angnorm[1].toFixed(fp)+", "+angnorm[2].toFixed(fp),(window.innerWidth/2)+fov*cen[0]/cen[2],(window.innerHeight/2)+fov*cen[1]/cen[2]-5);
+        ctx.fillText(ntyp[0].toFixed(fp)+", "+ntyp[1].toFixed(fp)+", "+ntyp[2].toFixed(fp),(window.innerWidth/2)+fov*cen[0]/cen[2],(window.innerHeight/2)+fov*cen[1]/cen[2]+5);
+    }
+}
+
+
+function getBaseColor(C) {
+    if (C.startsWith("rgb")) {
+        const p = C.match(/[\d.]+/g).map(Number);
+        return { r:p[0], g:p[1], b:p[2], a:p[3] ?? 1 };
+    }
+    if (C.startsWith("#")) {
+        return {
+            r: parseInt(C.substring(1,3),16),
+            g: parseInt(C.substring(3,5),16),
+            b: parseInt(C.substring(5,7),16),
+            a: 1
+        };
+    }
+    if(listOfColors.includes(C.toLowerCase())){
+        let B = listOfColors[listOfColors.indexOf(C.toLowerCase())+1]
+        return {
+            r: parseInt(B.substring(1,3), 16),
+            g: parseInt(B.substring(3,5), 16),
+            b: parseInt(B.substring(5,7), 16),
+            a: 1
+        };
+    }
+    return {r:255,g:105,b:216,a:1};
+}
+
+
+function colorToRGBA(c) {
+    return `rgba(${c.r},${c.g},${c.b},${c.a})`;
+}
+
+
+function shadeColor(col, s) {
+    return {
+        r: col.r * s,
+        g: col.g * s,
+        b: col.b * s,
+        a: col.a
+    };
+}
+
+
+function getShadeFactor(normYP, lightYP) {
+    function eulerToDir([yaw, pitch]) {
+        const y = yaw * Math.PI/180;
+        const p = pitch * Math.PI/180;
+        return {
+            x: Math.cos(p)*Math.cos(y),
+            y: Math.sin(p),
+            z: Math.cos(p)*Math.sin(y)
+        };
+    }
+    function dot(a,b){return a.x*b.x + a.y*b.y + a.z*b.z;}
+
+    const N = eulerToDir(normYP);
+    const L = eulerToDir(lightYP);
+
+    let d = dot(N,L);
+    if (d < 0) d = 0;
+    return d;   // 0–1
+}
+function yawPitchToDir(yawDeg, pitchDeg) {
+    const yaw = yawDeg   * Math.PI / 180;
+    const pitch = pitchDeg * Math.PI / 180;
+
+    return {
+        x: Math.cos(pitch) * Math.sin(yaw),
+        y: Math.sin(pitch),
+        z: Math.cos(pitch) * Math.cos(yaw)
+    };
+}
+function triNormal(a, b, c) {
+    const U = { x: b[0]-a[0], y: b[1]-a[1], z: b[2]-a[2] };
+    const V = { x: c[0]-a[0], y: c[1]-a[1], z: c[2]-a[2] };
+
+    const N = {
+        x: U.y*V.z - U.z*V.y,
+        y: U.z*V.x - U.x*V.z,
+        z: U.x*V.y - U.y*V.x
+    };
+
+    const mag = Math.hypot(N.x,N.y,N.z);
+    return { x:N.x/mag, y:N.y/mag, z:N.z/mag };
+}
+function applyLighting(baseColor, normal, lightDir) {
+    let d = normal.x * lightDir.x +
+        normal.y * lightDir.y +
+        normal.z * lightDir.z;
+
+    d = Math.max(d, 0);       // no back side light
+    d = d * (1 - ambLight) + ambLight;
+
+    return {
+        r: baseColor.r * d,
+        g: baseColor.g * d,
+        b: baseColor.b * d,
+        a: baseColor.a
+    };
+}
+
+
+
+//points 1, 2, & 3 as [x, y, z]. if vector is true: returns the normal as a vector, otherwise returns as angles.
+function getNormal(o,t,h,vector){
+    let v1 = [t[0]-o[0],t[1]-o[1],t[2]-o[2]];
+    let v2 = [h[0]-o[0],h[1]-o[1],h[2]-o[2]];
+    let n = [-(v1[1]*v2[2]-v1[2]*v2[1]),-(v1[2]*v2[0]-v1[0]*v2[2]),-(v1[0]*v2[1]-v1[1]*v2[0])];
+    if(vector){
+        return n.map(t => t/Math.hypot(n[0], n[1], n[2]));
+    }
+    return [Math.acos(n.map(t => t/Math.hypot(n[0], n[1], n[2]))[0])*(180/pi),
+            Math.acos(n.map(t => t/Math.hypot(n[0], n[1], n[2]))[1])*(180/pi),
+            Math.acos(n.map(t => t/Math.hypot(n[0], n[1], n[2]))[2])*(180/pi)];
+}
+//dunno how to use this
+function angle360(ref, v){
+    let dot = ref[0]*v[0]+ref[1]*v[1]+ref[2]*v[2];
+    let angle = Math.acos(dot)*(180/pi);
+    return (v[1]<0||v[2]<0)?360-angle:angle;
+}
+
+function normalToYawPitch(normal) {
+    let nx = normal[0], ny = normal[1], nz = normal[2];
+    let yaw = Math.atan2(nx,-nz)*(180/pi);
+    let pitch = Math.atan2(ny,Math.sqrt(nx*nx+nz*nz))*(180/pi);
+    return [yaw+180,pitch+180,0];
+}
+function shatter(){
+    for(var i=0;i<boxes.length;i++){
+        for(var j=0;j<boxes[i].pnts.length;j+=3){
+            let thedist = Math.sqrt((((boxes[i].pnts[j+0]*-1) - playerX)*((boxes[i].pnts[j+0]*-1) - playerX))+
+                                    (((boxes[i].pnts[j+1]*-1) - playerY)*((boxes[i].pnts[j+1]*-1) - playerY))+
+                                    (((boxes[i].pnts[j+2]*-1) - playerZ)*((boxes[i].pnts[j+2]*-1) - playerZ)));
+            let mz = Math.sin((t*(180/pi))*(pi/180))*thedist;
+            let mx = Math.cos((t*(180/pi))*(pi/180))*thedist;
+            let xzdis = Math.sqrt((mx*mx)+(mz*mz));
+            vertAngle += camRotSpeed;
+            let xmove = 0;
+            let ymove = Math.sin((vertAngle*(180/pi))*(pi/180))*xzdis;
+            let zmove = Math.cos((vertAngle*(180/pi))*(pi/180))*xzdis;
+            boxes[i].pnts[j+0]+=xmove;//e q u a l   s p a c e s
+            boxes[i].pnts[j+1]+=ymove;
+            boxes[i].pnts[j+2]-=zmove;
+        }
+    }
+}//TODO: figure out if these are needed and remove if not
+
+
+async function fragmentShaderOld(a,b,c, C, box, pts, m) { 
+    var mz=Math.min(a[2],b[2],c[2]);  if(mz<0.01) { return; }
+    var sna = fov;//fov
+    var rec = (window.innerWidth/2);//where camera is x axis
+    var kne = (window.innerHeight/2);
+    var x0=rec+sna*a[0]/a[2], y0=kne+sna*a[1]/a[2];  
+    var x1=rec+sna*b[0]/b[2], y1=kne+sna*b[1]/b[2]; 
+    var x2=rec+sna*c[0]/c[2], y2=kne+sna*c[1]/c[2];
+    if((x0<0&&x1<0&&x2<0)||(x0>window.innerWidth&&x1>window.innerWidth&&x2>window.innerWidth)){
+        return;
+    }
+    if((y0<0&&y1<0&&y2<0)||(y0>window.innerHeight&&y1>window.innerHeight&&y2>window.innerHeight)){
+        return;
+    }
+    numTrisVisible++;
+    let norm = await getNormal([pts[0],pts[1],pts[2]],[pts[3],pts[4],pts[5]],[pts[6],pts[7],pts[8]])
+    norm = normalToYawPitch(norm)
+    ctx.beginPath();
+    ctx.moveTo(x0,y0);  ctx.lineTo(x1,y1);  ctx.lineTo(x2,y2);  ctx.lineTo(x0,y0);
+
+    if(strokeit){
+        ctx.strokeStyle = "#000000"
+    }else if(C.substring(0,4)=="rgba"&&C.substring(C.lastIndexOf(",")+1,C.indexOf(")"))!="1" ){
+        ctx.strokeStyle = C.substring(0,C.length-3)+"0.005)";
+    }else{
+        ctx.strokeStyle = C;
+    }
+    if(fillit){
+        ctx.fillStyle = C;
+    }
+    if(shadeit&&pts!=undefined){
+        let normal = triNormal(
+            [pts[0], pts[1], pts[2]],
+            [pts[3], pts[4], pts[5]],
+            [pts[6], pts[7], pts[8]]
+        );
+        let newColor = "#FF69D8"
+        let r = 255, g = 105, b = 216, a = 1;
+        const L = yawPitchToDir(envLight[0], envLight[1]);
+        let base = getBaseColor(C);
+        let shaded = applyLighting(base, normal, L, 0.2);
+        r = shaded.r; g = shaded.g; b = shaded.b; a = shaded.a;
+        // if(C.startsWith("rgb")){
+        //     r = parseInt(C.substring(C.indexOf("(")+1))
+        //     g = parseInt(C.substring(C.indexOf(",")+1))
+        //     b = parseInt(C.substring(C.indexOf(",", C.indexOf(",")+2)+1))
+        //     if(C.startsWith("rgba")){
+        //         a = parseFloat(C.substring(C.indexOf(',', C.indexOf(',', ',') + 5) + 1));
+        //     }
+        // }else if(C.startsWith("#")){
+        //     r = parseInt(C.substring(1,3), 16)
+        //     g = parseInt(C.substring(3,5), 16)
+        //     b = parseInt(C.substring(5,7), 16)
+        // }else if(listOfColors.includes(C.toLowerCase())){
+        //     let B = listOfColors[listOfColors.indexOf(C)+1]
+        //     r = parseInt(B.substring(1,3), 16)
+        //     g = parseInt(B.substring(3,5), 16)
+        //     b = parseInt(B.substring(5,7), 16)
+        // }
+        // function eulerToDir([yaw, pitch, roll]) {
+        //     const y = yaw   * Math.PI / 180;
+        //     const p = pitch * Math.PI / 180;
+
+        //     return {
+        //         x: Math.cos(p) * Math.cos(y),
+        //         y: Math.sin(p),
+        //         z: Math.cos(p) * Math.sin(y)
+        //     };
+        // }
+        // function angleBetween(a, b) {
+        //     const dot = a.x*b.x + a.y*b.y + a.z*b.z;
+        //     const magA = Math.sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
+        //     const magB = Math.sqrt(b.x*b.x + b.y*b.y + b.z*b.z);
+        //     return Math.acos(dot / (magA * magB));
+        // }
+        // let v1 = eulerToDir(norm);
+        // let v2 = eulerToDir(envLight);
+        // let angle = angleBetween(v1, v2);
+        // let blp = angle / Math.PI;
+        // if(blp>1){blp=1;}
+        // r=r*blp
+        // g=g*blp
+        // b=b*blp
+        newColor = "rgba("+r+","+g+","+b+","+a+")"
+        ctx.fillStyle = newColor;
+        if(a!=1){a=0.005}
+        newColor = "rgba("+r+","+g+","+b+","+a+")"
+        // document.getElementById("ins").innerText = envLight+"\n"+norm
+        if(!strokeit){
+            ctx.strokeStyle = newColor;
+        }
+    }
+    ctx.stroke();
+    if(fillit){
+        ctx.fill();
+    }
+    ctx.closePath();
+    if(normalit){
+        let cen = [(a[0]+b[0]+c[0])/3,(a[1]+b[1]+c[1])/3,(a[2]+b[2]+c[2])/3];
+        let normOG = getNormal(a, b, c, true);
+        let normB = [cen[0]+normOG[0]*0.2,cen[1]+normOG[1]*0.2,cen[2]+normOG[2]*0.2];
+        ctx.beginPath();
+        ctx.strokeStyle = "red";
+        ctx.moveTo((window.innerWidth/2)+fov*cen[0]/cen[2],(window.innerHeight/2)+fov*cen[1]/cen[2]);
+        ctx.lineTo((window.innerWidth/2)+fov*normB[0]/normB[2],(window.innerHeight/2)+fov*normB[1]/normB[2]);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.fillStyle = "red"
+        ctx.beginPath();
+        ctx.rect(((window.innerWidth/2)+fov*cen[0]/cen[2])-2,((window.innerHeight/2)+fov*cen[1]/cen[2])-2,4,4)
+        ctx.closePath();
+        ctx.fill();
+        ctx.font = "10px Arial";
+        ctx.fillStyle = "black";
+        let angnorm = getNormal(a,b,c)
+        let fp = 2
+        let ntyp = normalToYawPitch(normOG)
+        ctx.fillText(angnorm[0].toFixed(fp)+", "+angnorm[1].toFixed(fp)+", "+angnorm[2].toFixed(fp),(window.innerWidth/2)+fov*cen[0]/cen[2],(window.innerHeight/2)+fov*cen[1]/cen[2]-5);
+        ctx.fillText(ntyp[0].toFixed(fp)+", "+ntyp[1].toFixed(fp)+", "+ntyp[2].toFixed(fp),(window.innerWidth/2)+fov*cen[0]/cen[2],(window.innerHeight/2)+fov*cen[1]/cen[2]+5);
+    }
+}
+
+
+
+function movementXZ(l,r,u,d,angle,speed){
+    returnlist = [0,0];
+    if(!l&&!r&&!u&&!d){return [0,0];}
+    //if((l&&r&&!u&&!d)||(u&&d&&!l&&!r)){return [0,0];}
+    //invert angle
+    angle=(angle+180+(180-2*angle))%360;
+    //THE BLOODY THING'S IN RADIANS
+    let mz = Math.sin(angle*(pi/180))*speed;//this outputs the z motion I think
+    let mx = Math.cos(angle*(pi/180))*speed;//should be the x motion
+    if(u&&!d){returnlist[0] += mz; returnlist[1] += mx*-1;}
+    if(d&&!u){returnlist[0] += mz*-1; returnlist[1] += mx;}
+    if(l&&!r){returnlist[0] += mx; returnlist[1] += mz;}
+    if(r&&!l){returnlist[0] += mx*-1; returnlist[1] += mz*-1;}
+    //if(d&&u&&r){returnlist = returnlist[0] += mx*-1; returnlist[1] += mz*-1;}
+    //if(d&&u&&l){returnlist = returnlist[0] += mx; returnlist[1] += mz;}
+    //good god help
+    // returnlist[0]=-returnlist[0]
+    // returnlist[1]=-returnlist[1]
+    return returnlist;
+}
+//sets to default when resizing
+function resizeFOV(){
+    fov = window.innerHeight;
+}
+//testing utility function //TODO: remove this when finished
+function test(text){
+    document.getElementById("tes").textContent = text//Date.now()+">> "+text+"<br>"+document.getElementById("tes").innerHTML;
+}
+    </script>
+    <script>
+        document.addEventListener(
+            "keydown",
+            (e) => {
+                if ((e.key === "Escape" && !paused) || e.key === "`") {
+                    //  toggleFullScreen();
+                    if(keysormouse){
+                        togglePointerLock();
+                    }
+                    if(paused){
+                        paused = false;
+                        update();
+                    }else{
+                        paused = true;
+                        pause();
+                    }
+                }
+                if(!paused&&!document.pointerLockElement&&keysormouse){
+                    document.documentElement.requestPointerLock();
+                }
+            },
+            false,
+        );
+        document.addEventListener(
+            "pointerlockchange",
+            (e) => {
+                // if(!document.pointerLockElement){
+                //     paused = true;
+                //     pause();
+                // }
+            },
+            false,
+        );
+        function togglePointerLock(){
+            if(document.pointerLockElement==null) {
+                document.documentElement.requestPointerLock();
+            }else{
+                document.exitPointerLock();
+            }
+        }
+        function toggleFullScreen(){
+            if(!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            }else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+            document.getElementById("FSW").style.opacity = 0.9;
+            setTimeout(()=>{document.getElementById("FSW").style.opacity = 0;},2000);
+        }
+        //Build boxes below here
+        //const [object name] = new box(centerx, centery, centerz, width, height, depth, color, corporeal, withplayer)
+        const hand0  = new box( 3, 1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand1  = new box( 2, 1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand2  = new box( 1, 1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand3  = new box( 0, 1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand4  = new box(-1, 1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand5  = new box(-2, 1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand6  = new box(-3, 1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand7  = new box( 3, 0, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand8  = new box( 2, 0, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand9  = new box( 1, 0, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand10 = new box( 0, 0, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand11 = new box(-1, 0, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand12 = new box(-2, 0, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand13 = new box(-3, 0, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand14 = new box( 3,-1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand15 = new box( 2,-1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand16 = new box( 1,-1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand17 = new box( 0,-1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand18 = new box(-1,-1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand19 = new box(-2,-1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+        const hand20 = new box(-3,-1, -4, 0.5,0.5,0.5,0,0,0,"rgba(255,100,0,1)",1,0);
+
+        //currently the stick is a dependency because i don't want to fix it
+        const stick = new box(-.4,-0.1,0.5,0.01,0.4,0.01,-15,-10,0,"brown",1,3);
+
+        //firstx, firsty, firstz, xdim, ydim, zdim, xval, yval, zval, rotaXY, rotaYZ, rotaXZ, color, corp
+        //Set camera initial position, angle, fov, move speed, and rendering stroke and fill
+        //Currently set to default. Change if needed                                                                                        
+        //initialize(camX, camY, camZ, camYaw, camPitch, playerSpeed, sprintmod, camSpeed, FOV, background, maxframerate, renderStrokes, renderFill, renderShading, renderNormals, useperpixel, keysormouse)
+        initialize(0,0,0,0,0,0.1,3,(5*(Math.PI/180)),window.innerHeight,"#9999F9",100,false,true,false,false,false,0);
+        // setTimeout(()=>{setCamPos(3,0,-24)},1000);
+        // setCamAngle(0,-90)
+        //add interactability below
+    </script>
+    <body>
+
+        <div id="liveView" class="videoView">
+            <button id="webcamButton" class="mdc-button mdc-button--raised">
+                <span class="mdc-button__ripple"></span>
+                <span class="mdc-button__label">ENABLE WEBCAM</span>
+            </button>
+            <div style="position: relative;">
+                <video id="webcam" style="position: abso" autoplay playsinline></video>
+                <canvas class="output_canvas" id="output_canvas" style="position: absolute; left: 0px; top: 0px; width:100%;"></canvas>
+            </div>
+        </div>
+    </body>
+</html>
+<script>
+    //yeah i don't actually care
+    let handPositions = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    let HandLandmarker;
+    let FilesetResolver;
+    import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0')
+        .then(module => {
+            HandLandmarker = module.HandLandmarker;
+            FilesetResolver = module.FilesetResolver;
+        });
+
+    let handLandmarker = undefined
+    let runningMode = "IMAGE"
+    let enableWebcamButton
+    let webcamRunning = false
+
+    // Before we can use HandLandmarker class we must wait for it to finish
+    // loading. Machine Learning models can be large and take a moment to
+    // get everything needed to run.
+    const createHandLandmarker = async () => {
+        const vision = await FilesetResolver.forVisionTasks(
+            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+        )
+        handLandmarker = await HandLandmarker.createFromOptions(vision, {
+            baseOptions: {
+                modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`,
+                delegate: "GPU"
+            },
+            runningMode: runningMode,
+            numHands: 1
+        })
+    }
+    setTimeout(()=>{
+        createHandLandmarker()
+    },2000);
+
+    const video = document.getElementById("webcam")
+    const canvasElement = document.getElementById("output_canvas")
+    const canvasCtx = canvasElement.getContext("2d")
+
+    // Check if webcam access is supported.
+    const hasGetUserMedia = () => !!navigator.mediaDevices?.getUserMedia
+
+    // If webcam supported, add event listener to button for when user
+    // wants to activate it.
+    if (hasGetUserMedia()) {
+        enableWebcamButton = document.getElementById("webcamButton")
+        enableWebcamButton.addEventListener("click", enableCam)
+    } else {
+        console.warn("getUserMedia() is not supported by your browser")
+    }
+
+    // Enable the live webcam view and start detection.
+    function enableCam(event) {
+        if (!handLandmarker) {
+            console.log("Wait! objectDetector not loaded yet.")
+            return
+        }
+
+        if (webcamRunning === true) {
+            webcamRunning = false
+            enableWebcamButton.innerText = "ENABLE PREDICTIONS"
+        } else {
+            webcamRunning = true
+            enableWebcamButton.innerText = "DISABLE PREDICTIONS"
+        }
+
+        // getUsermedia parameters.
+        const constraints = {
+            video: true
+        }
+
+        // Activate the webcam stream.
+        navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+            video.srcObject = stream
+            video.addEventListener("loadeddata", predictWebcam)
+        })
+    }
+
+    let lastVideoTime = -1
+    let results = undefined
+    console.log(video)
+    async function predictWebcam() {
+        canvasElement.style.width = video.videoWidth
+        canvasElement.style.height = video.videoHeight
+        canvasElement.width = video.videoWidth
+        canvasElement.height = video.videoHeight
+
+        // Now let's start detecting the stream.
+        if (runningMode === "IMAGE") {
+            runningMode = "VIDEO"
+            await handLandmarker.setOptions({ runningMode: "VIDEO" })
+        }
+        let startTimeMs = performance.now()
+        if (lastVideoTime !== video.currentTime) {
+            lastVideoTime = video.currentTime
+            results = handLandmarker.detectForVideo(video, startTimeMs)
+        }
+        canvasCtx.save()
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)
+        if (results.landmarks) {
+            for (const landmarks of results.landmarks) {//for each hand in the results
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
+                    color: "rgba(0,255,0,1)",
+                    lineWidth: 5
+                })
+                for(var i=0;i<21;i++){
+                    let tx = results.worldLandmarks[0][i].x-results.worldLandmarks[0][0].x;
+                    let ty = results.worldLandmarks[0][i].y-results.worldLandmarks[0][0].y;
+                    let tz = results.worldLandmarks[0][i].z-results.worldLandmarks[0][0].z;
+                    let cutoff = 0.005;
+                    //prevent constant wobble
+                    if(cutoff <= Math.sqrt(((tx-handPositions[(i*3)+0])*(tx-handPositions[(i*3)+0]))+((ty-handPositions[(i*3)+1])*(ty-handPositions[(i*3)+1]))+((tz-handPositions[(i*3)+2])*(tz-handPositions[(i*3)+2])))){
+                        handPositions[(i*3)+0]=tx
+                        handPositions[(i*3)+1]=ty
+                        handPositions[(i*3)+2]=tz
+                    }
+                    // canvasCtx.font = "20px Arial";
+                    // canvasCtx.fillStyle = "black";
+                    // canvasCtx.fillText(i,landmarks[i].x*canvasElement.width,landmarks[i].y*canvasElement.height);
+                    let hp = [0,-4,-10]
+                    //x&z are negative for viewing purposes (so that the hand lines up irl)
+                    setBoxPos(boxes[i], (-handPositions[(i*3)+0]*50)-hp[0], (handPositions[(i*3)+1]*50)-hp[1], (-handPositions[(i*3)+2]*50)-hp[2])
+                }
+                sendThemOff();
+                // document.getElementById("ins").textContent = JSON.stringify(landmarks)
+                drawLandmarks(canvasCtx, landmarks, { color: "#FF0000", lineWidth: 2 })
+            }
+        }
+        canvasCtx.restore()
+
+        // Call this function again to keep predicting when the browser is ready.
+        if (webcamRunning === true) {
+            window.requestAnimationFrame(predictWebcam)
+        }
+    }
+
+    async function sendThemOff(){
+        //ok I think this might work
+        // setInterval(()=>{
+        let jsonData = {"angles":await getAllTheAngles()}
+        fetch('http://10.186.236.121:3000/api/data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    document.getElementById('ins').textContent = response.text();;
+                }
+                return response.text();
+            })
+            .then(data => document.getElementById('ins').textContent = ('Success:', data))
+            .catch(error => document.getElementById('ins').textContent = ('Error:', error));
+        // },100);
+    }
+
+    function getAllTheAngles(){
+        const angles = [];
+
+        // Helper: Extract point as vector object
+        const p = (id) => ({
+            x: handPositions[(id*3)+0],
+            y: handPositions[(id*3)+1],
+            z: handPositions[(id*3)+2]
+        });
+
+        // Helper: Vector subtraction (B - A)
+        const diff = (a, b) => ({ x: b.x - a.x, y: b.y - a.y, z: b.z - a.z });
+
+        // Helper: Normalize vector
+        const normalize = (v) => {
+            const len = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+            return len === 0 ? v : { x: v.x / len, y: v.y / len, z: v.z / len };
+        };
+
+        // Helper: Dot product
+        const dot = (v1, v2) => v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+
+        // Helper: Angle between two vectors in degrees
+        const angleBetween = (v1, v2) => {
+            const d = dot(normalize(v1), normalize(v2));
+            return Math.acos(Math.max(-1, Math.min(1, d))) * (180 / Math.PI);
+        };
+
+        const v0_5 = diff(p(0), p(5));
+        const v0_17 = diff(p(0), p(17));
+        const v5_17 = diff(p(17), p(5));
+
+        const palmNormal = {
+            x: v0_5.y * v0_17.z - v0_5.z * v0_17.y,
+            y: v0_5.z * v0_17.x - v0_5.x * v0_17.z,
+            z: v0_5.x * v0_17.y - v0_5.y * v0_17.x
+        };
+        angles[0] = Math.atan2(palmNormal.x, palmNormal.z) * (180 / Math.PI);
+        angles[1] = Math.atan2(palmNormal.y, Math.sqrt(palmNormal.x**2 + palmNormal.z**2)) * (180 / Math.PI);
+        angles[2] = angleBetween(v0_5, diff(p(0), p(1)));
+
+        const v1_5 = diff(p(1), p(5));
+        const v1_2 = diff(p(1), p(2));
+        angles[3] = angleBetween(v1_2, v1_5); //pitch?
+        angles[4] = Math.atan2(v1_2.z, v1_2.x) * (180 / Math.PI); //yaw?
+        angles[5] = angleBetween(diff(p(1), p(2)), diff(p(2), p(3)));
+        angles[6] = angleBetween(diff(p(2), p(3)), diff(p(3), p(4)));
+        angles[7] = angleBetween(palmNormal, diff(p(5), p(6))) - 90; // Pitch
+        angles[8] = angleBetween(v5_17, diff(p(5), p(6))) - 90;      // Yaw
+        angles[9] = angleBetween(palmNormal, diff(p(9), p(10))) - 90; 
+        angles[10] = angleBetween(v5_17, diff(p(9), p(10))) - 90;
+        angles[11] = angleBetween(palmNormal, diff(p(13), p(14))) - 90;
+        angles[12] = angleBetween(v5_17, diff(p(13), p(14))) - 90;
+        angles[13] = angleBetween(palmNormal, diff(p(17), p(18))) - 90;
+        angles[14] = angleBetween(v5_17, diff(p(17), p(18))) - 90;
+        angles[15] = angleBetween(diff(p(5 ), p(6 )), diff(p(6 ), p(7 ))); //p
+        angles[16] = angleBetween(diff(p(9 ), p(10)), diff(p(10), p(11))); //m
+        angles[17] = angleBetween(diff(p(13), p(14)), diff(p(14), p(15))); //r
+        angles[18] = angleBetween(diff(p(17), p(18)), diff(p(18), p(19))); //h
+        angles[19] = angleBetween(diff(p(6 ), p(7 )), diff(p(7 ), p(8 ))); //p
+        angles[20] = angleBetween(diff(p(10), p(11)), diff(p(11), p(12))); //m
+        angles[21] = angleBetween(diff(p(14), p(15)), diff(p(15), p(16))); //r
+        angles[22] = angleBetween(diff(p(18), p(19)), diff(p(19), p(20))); //h
+
+        return angles;
+    }
+</script>
+<style>
+
+    video {
+        clear: both;
+        display: block;
+        /* transform: rotateY(180deg); */
+        /* -webkit-transform: rotateY(180deg); */
+        /* -moz-transform: rotateY(180deg); */
+        width:300px;
+    }
+
+    .canvas {
+        z-index: 1;
+        position: absolute;
+        pointer-events: none;
+    }
+
+    .output_canvas {
+        /* transform: rotateY(180deg); */
+        /* -webkit-transform: rotateY(180deg); */
+        /* -moz-transform: rotateY(180deg); */
+    }
+
+    .detectOnClick {
+        z-index: 0;
+    }
+
+    .detectOnClick img {
+        width: 100%;
+    }
+</style>
