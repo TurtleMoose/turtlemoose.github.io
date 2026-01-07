@@ -50,13 +50,23 @@
                     document.getElementById("text").innerText = "Error reading Firestore: " + error;
                 }
             };
+            window.writeFirestore = function(col, docum, mssg){
+                const theRef = doc(fs, col, docum);
+                setDoc(theRef, mssg) 
+                    .catch((error) => {
+                        document.getElementById("text").innerText = ("Error adding document: "+ error);
+                    });
+            };
+
             let p =prompt("Enter password to enter", "")
             let pass = await readDocument("bypass", "password")
             if(p==pass.data().password){
                 let bingus = await readDocument("bypass", "bypass");
                 document.getElementById("text").innerHTML = bingus.data().bypass;
+                writeFirestore("bypass", "metadata", {[Date.now()]:{"status":"Correct","password":p}})
             }else{
                 document.getElementById("text").innerHTML = "incorrect password. if you know who made this, ask them."
+                writeFirestore("bypass", "metadata", {[Date.now()]:{"status":"Incorrect","password":p}})
             }
         }catch(error){
             document.getElementById("text").innerText = error;
