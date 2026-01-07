@@ -1,0 +1,65 @@
+<html>
+    <link rel="stylesheet" href="style.css">
+    <head>
+        <title>Bypass Instructions | yourmodernproblems.com</title>
+        <!--goofy ah icons-->
+        <link rel="shortcut icon" href="imgs/fav/favicon.png"/>
+        <link rel="shortcut icon" href="imgs/fav/favicon.ico"/>
+    </head>    
+    <body>
+        <div id="text"></div>
+    </body>
+    <noscript><!--This shows if JS is disabled. Easy fix because the entire bloody site relies on js for now-->
+        <div style="width:100%;height:100%;color:#B8B8B8;top:0;left:0;z-index:101;position:fixed;background-color:#242424;">
+            <div style="width:100%;top:30%;position:fixed;text-align:center;font-size:30px;">You have disabled Javascript in your browser. Please reenable it to view our site properly.</div>
+            <div style="width:100%;top:90%;position:fixed;text-align:center;font-size:15px;">2024 yourmodernproblems.com</div>
+        </div>
+    </noscript>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+        import { getDatabase, ref, set, get, child, onValue, remove} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
+        import { getFirestore, doc, setDoc, getDocs, getDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+        try{
+            const firebaseConfig = {
+                apiKey: "AIzaSyA6fn7YEU96gExWkm8NCCd2fD2M0QLh0Uo",
+                authDomain: "chatsite-5255b.firebaseapp.com",
+                databaseURL: "https://chatsite-5255b-default-rtdb.firebaseio.com",
+                projectId: "chatsite-5255b",
+                storageBucket: "chatsite-5255b.firebasestorage.app",
+                messagingSenderId: "36433826112",
+                appId: "1:36433826112:web:964390a605d85e6c45eaa5",
+                measurementId: "G-C4CD31ZV47"
+            };
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            const fs = getFirestore(app);
+
+            window.readDocument = async function(col, docId){
+                try {
+                    const docRef = doc(fs, col, docId);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        return docSnap;
+                    } else {
+                        return false;
+                    }
+                } catch (error) {
+                    console.log(error)
+                    document.getElementById("text").innerText = "Error reading Firestore: " + error;
+                }
+            };
+            let p =prompt("Enter password to enter", "")
+            let pass = await readDocument("bypass", "password")
+            if(p==pass.data().password){
+                let bingus = await readDocument("bypass", "bypass");
+                document.getElementById("text").innerHTML = bingus.data().bypass;
+            }else{
+                document.getElementById("text").innerHTML = "incorrect password. if you know who made this, ask them."
+            }
+        }catch(error){
+            document.getElementById("text").innerText = error;
+        }
+    </script>
+</html>
