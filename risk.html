@@ -15,12 +15,9 @@
         <script>
 
 
-            // AK and HI are commented out
+
             const map = am5geodata_usaLow
-            // const map = am5geodata_usaHigh
-            // const map = countiesLow
-            // const map = countiesHigh
-            // const map = am5geodata_region_usa_congressional2025_usaCongressionalLow
+
 
             let lasttimeupdate = Date.now();
             let timedifference;
@@ -31,7 +28,7 @@
             cnv.width = window.innerWidth*2;
             cnv.height = window.innerHeight*2;
 
-            //god help me
+     
             ctx.lineWidth=0.07
             ctx.scale(20, -25);
             ctx.translate(130,-50);
@@ -55,16 +52,6 @@
                 if(Key.isDown(Key.n)){lat1+=1}
                 if(Key.isDown(Key.j)){lat1-=1}
 
-                //  deg * pi/180 = rad
-                // x = radius * cos(LAT) * cos(LON)
-                // y = radius * cos(LAT) * sin(LON)
-                // z = radius * sin(LON)
-                // lat = y   lon = x
-
-
-                //ok so you gotta make it so that the coordinates get converted to be relative to 0,0 with negative up.
-                //make it so that the points move instead of the 'camera'
-                //ok good night future me good luck lol
 
                 let states = {}
 
@@ -78,9 +65,7 @@
                         if(map.features[i].geometry.type=="Polygon"){
                             out+=map.features[i].geometry.coordinates[0][0].join(" ")+" ";
                             for(var j=1;j<map.features[i].geometry.coordinates[0].length;j++){
-                                //simple render
-                                // out += "L"+map.features[i].geometry.coordinates[0][j].join(" ")+" "
-
+                          
 
                                 let lon = -map.features[i].geometry.coordinates[0][j][0]*(Math.PI/180)+(lat1*Math.PI/180);
                                 let lat = -map.features[i].geometry.coordinates[0][j][1]*(Math.PI/180)+(lon1*Math.PI/180);
@@ -89,25 +74,16 @@
                                 let r = 5000
                                 let fL = window.innerHeight
                                 let dist = 100;
-                                // out += "L"+((r*Math.cos(map.features[i].geometry.coordinates[0][j][0]*(Math.PI/180)+(lat1*Math.PI/180))*Math.cos(map.features[i].geometry.coordinates[0][j][1]*(Math.PI/180)+(lon1*Math.PI/180))) * fL)/(Math.sin(map.features[i].geometry.coordinates[0][j][1]*(Math.PI/180)+(lat1*Math.PI/180)) + dist)+" "+((r*Math.cos(map.features[i].geometry.coordinates[0][j][0]*(Math.PI/180)+(lat1*Math.PI/180))*Math.sin(map.features[i].geometry.coordinates[0][j][1]*(Math.PI/180)+(lon1*Math.PI/180))) * fL)/(Math.sin(map.features[i].geometry.coordinates[0][j][1]*(Math.PI/180)+(lat1*Math.PI/180)) + dist)+" ";
-                                // // out += "L"+(r * Math.cos(lat) * Math.sin(lon - lon0) )/(dist - Math.cos(angDist))+" "+(r * Math.cos(lat0) * Math.sin(lat) - Math.sin(lat0) * Math.cos(lat) * Math.cos(lon - lon0) )/(dist - Math.cos(angDist))+" ";
                                 out += ((dLon, cos_c) =>  "L" + (r * Math.cos(lat) * Math.sin(dLon)) / (dist - cos_c) + " " + (r * (Math.cos(lat0) * Math.sin(lat) - Math.sin(lat0) * Math.cos(lat) * Math.cos(dLon))) / (dist - cos_c) + " ")(lon - lon0, Math.sin(lat0) * Math.sin(lat) + Math.cos(lat0) * Math.cos(lat) * Math.cos(lon - lon0));
                             }
-                            // document.getElementById("pointerText").innerText += out+"\n"
                             const p = new Path2D(out)
                             ctx.stroke(p);
                             ctx.fill(p);
                             if(ctx.isPointInPath(p, Mouse.x, Mouse.y)){location = map.features[i].properties.name}
                         }else if(map.features[i].geometry.type=="MultiPolygon"){
                             for(var k=0;k<map.features[i].geometry.coordinates.length;k++){
-                                // out="M"+map.features[i].geometry.coordinates[k][0].join(" ")+" ";
                                 for(var j=1;j<map.features[i].geometry.coordinates[k][0].length;j++){
-                                    // out += "L"+map.features[i].geometry.coordinates[k][0][j].join(" ")+" ";
-
-                                    //simple render
-                                    // out += "L"+map.features[i].geometry.coordinates[0][j].join(" ")+" "
-
-
+                                    
                                     let lon = -map.features[i].geometry.coordinates[k][0][j][0]*(Math.PI/180)+(lat1*Math.PI/180);
                                     let lat = -map.features[i].geometry.coordinates[k][0][j][1]*(Math.PI/180)+(lon1*Math.PI/180);
                                     let lon0 = 90*Math.PI/180;
@@ -115,11 +91,8 @@
                                     let r = 5000
                                     let fL = window.innerHeight
                                     let dist = 100;
-                                    // out += "L"+((r*Math.cos(map.features[i].geometry.coordinates[0][j][0]*(Math.PI/180)+(lat1*Math.PI/180))*Math.cos(map.features[i].geometry.coordinates[0][j][1]*(Math.PI/180)+(lon1*Math.PI/180))) * fL)/(Math.sin(map.features[i].geometry.coordinates[0][j][1]*(Math.PI/180)+(lat1*Math.PI/180)) + dist)+" "+((r*Math.cos(map.features[i].geometry.coordinates[0][j][0]*(Math.PI/180)+(lat1*Math.PI/180))*Math.sin(map.features[i].geometry.coordinates[0][j][1]*(Math.PI/180)+(lon1*Math.PI/180))) * fL)/(Math.sin(map.features[i].geometry.coordinates[0][j][1]*(Math.PI/180)+(lat1*Math.PI/180)) + dist)+" ";
-                                    // // out += "L"+(r * Math.cos(lat) * Math.sin(lon - lon0) )/(dist - Math.cos(angDist))+" "+(r * Math.cos(lat0) * Math.sin(lat) - Math.sin(lat0) * Math.cos(lat) * Math.cos(lon - lon0) )/(dist - Math.cos(angDist))+" ";
                                     out += ((dLon, cos_c) =>  "L" + (r * Math.cos(lat) * Math.sin(dLon)) / (dist - cos_c) + " " + (r * (Math.cos(lat0) * Math.sin(lat) - Math.sin(lat0) * Math.cos(lat) * Math.cos(dLon))) / (dist - cos_c) + " ")(lon - lon0, Math.sin(lat0) * Math.sin(lat) + Math.cos(lat0) * Math.cos(lat) * Math.cos(lon - lon0));
                                 }
-                                // document.getElementById("pointerText").innerText += out+"\n"
                                 const p = new Path2D(out)
                                 ctx.stroke(p);
                                 ctx.fill(p);
@@ -144,10 +117,7 @@
 
                     states[map.features[i].properties.name] = {center: findCenter(shape), borders: stateData[map.features[i].properties.name].borders}
 
-                    // if(map.features[i].properties.name=="Wyoming"){
-                    // states[map.features[i].properties.name] = {center: findCenter(shape), borders: ["Kansas"]}
-                    // }
-
+                    
 
                 }
                 ctx.font = "1.5px mono";
@@ -157,13 +127,7 @@
                 ctx.scale(0.5,-0.5);
                 for(const state in states){
                     ctx.fillText(state, states[state].center.x*2, states[state].center.y*-2)
-                    // for(const border in states[state].borders){
-                    //     drawArrow(states[state].center.x, states[state].center.y, states[states[state].borders[border]].center.x, states[states[state].borders[border]].center.y)
-                    //     //states[border].center.x
-                    // }
-                    // // document.getElementById("pointerText").innerText = state+""+JSON.stringify(states[state])
-                    // document.getElementById("pointerText").innerText = JSON.stringify(stateData)
-                }
+                   }
                 ctx.scale(2,-2);
                 for(const state in states){
                     for(const border in states[state].borders){
@@ -172,10 +136,8 @@
                         }
                         document.getElementById("pointerText").innerText = "states[\""+location+"\"] = "+JSON.stringify(states[location])//states[border].center.x
                     }
-                    // document.getElementById("pointerText").innerText = state+""+JSON.stringify(states[state])
-                }
+                    }
 
-                // document.getElementById("pointerText").innerText = JSON.stringify(states)//location+". "+Mouse.x+" "+Mouse.y//ctx.getTransform()//Math.random()
                 document.getElementById("pointerText").style.left = Mouse.x+"px"
                 document.getElementById("pointerText").style.top = Mouse.y-20+"px"
                 frames();
@@ -184,14 +146,9 @@
             update();
 
             function frames(){
-                //Frame counter, i think its something with delta time?
                 timedifference = (Date.now() - lasttimeupdate);
-                // while(timedifference<(1000/maxframerate)){timedifference = (Date.now() - lasttimeupdate);}
                 lasttimeupdate = Date.now();
-                //console.log(temptime);
                 var framerate = Math.floor(1000/(timedifference));
-                //this averages it out over the last ten frames for a more readable
-                //output (no flashing when at refresh rate)
                 fa[(fa[0]%10)+1] = framerate;
                 fa[0]++;
                 let average = (fa[1]+fa[2]+fa[3]+fa[4]+fa[5]+fa[6]+fa[7]+fa[8]+fa[9]+fa[10])/10;
@@ -217,19 +174,10 @@
                 ctx.strokeStyle = "red"
                 ctx.lineWidth = 0.15;
                 ctx.beginPath();
-                // let o = ((Math.sqrt(((endx+startx)*(endx+startx))+((endy+starty)*(endy+starty)))-10)/(Math.sqrt(((endx+startx)*(endx+startx))+((endy+starty)*(endy+starty)))))
                 ctx.moveTo(startx, starty);
-                // ctx.bezierCurveTo(startx-10, starty, startx, starty-10, endx, endy)
                 ctx.lineTo(endx,endy);//(startx+(endx-startx)*0.95, starty+(endy-starty)*0.95);
 
-                // document.getElementById("pointerText").innerText = 
                 ctx.closePath();
-                // ctx.beginPath();
-                // ctx.moveTo(startx+(endx-startx), starty+(endy-starty));
-                // let a = Math.atan((startx-endx)/(starty-endy))
-                // ctx.lineTo(Math.cos(a-0.9)+startx+(endx-startx)*0.972, Math.cos(a+0.6)+starty+(endy-starty)*0.972);
-                // ctx.lineTo(startx+(endx-startx), starty+(endy-starty));
-                // ctx.closePath();
                 ctx.stroke();
             }
         </script>
