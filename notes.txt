@@ -1,0 +1,21 @@
+let data = await(await fetch("https://yourmodernproblems.com/notes.txt")).text()  //.JSON()
+
+setDoc(doc(db, col, docum), mssg)
+
+const docSnap = await getDoc(doc(db, col, docId));
+if (docSnap.exists()) {
+    return docSnap;
+} else {
+    return false;
+}
+
+updateDoc(doc(db, col, docum), mssg)
+
+deleteDoc(doc(db, col, docu))
+
+const unsub = onSnapshot(collection(db, colId), (snap) => {
+    console.log("Current data: ", JSON.stringify(snap.docs[0].data()));
+    for(let doc of snap.docs){
+        console.log("Current data: ", JSON.stringify(doc.data()))
+    }
+})
