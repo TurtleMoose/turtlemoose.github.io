@@ -1,5 +1,8 @@
 let data = await(await fetch("https://yourmodernproblems.com/notes.txt")).text()  //.JSON()
 
+import { db } from "$lib/firebase";
+import { collection, doc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, onSnapshot} from "firebase/firestore";
+
 setDoc(doc(db, col, docum), mssg)
 
 const docSnap = await getDoc(doc(db, col, docId));
