@@ -1,0 +1,60 @@
+<html>
+    <canvas style="" id="canvas"></canvas>
+    <div id="out">Not Loading</div>
+    <img alt="asdf" id="image" style="" src="something.png"/>
+</html>
+<script>
+    const cnv = document.getElementById("canvas");
+    cnv.width=5632
+    cnv.height=2048
+    const ctx = cnv.getContext("2d");
+    ctx.fillStyle = "rgb(16,15,16)";
+    // ctx.fillRect(10, 10, 50, 50);
+    const image = document.getElementById("image");
+
+    document.getElementById("out").innerHTML = "Point"
+    image.addEventListener("load", async (e) => {
+        // try{
+        ctx.drawImage(image, 0, 0);
+        // }catch(eb){document.getElementById("out").textContent = "asfasdf"}
+        // document.getElementById("out").innerHTML = "done2"
+        setTimeout(()=>{load()},0)
+        document.getElementById("out").innerHTML = "Loading"
+        
+    });
+    function load() {
+        try{
+            let w=5632; 
+            let h=2048;
+            let pixels = [];
+            let table = [];
+            let final = {}
+            const imgData = ctx.getImageData(0, 0, w, h);
+            // document.getElementById("out").textContent += JSON.stringify(imgData)
+            for(var i=0;i<imgData.data.length;i+=4){
+                pixels[i/4] = ((parseInt(imgData.data[0+i])<16)?"0":"")+imgData.data[0+i].toString(16)+((parseInt(imgData.data[1+i])<16)?"0":"")+imgData.data[1+i].toString(16)+((parseInt(imgData.data[2+i])<16)?"0":"")+imgData.data[2+i].toString(16)//+" "+imgData.data[3+i]
+            }
+            // document.getElementById("out").textContent = pixels
+            for(var i=0;i<pixels.length;i+=w){
+                table[i/w] = pixels.slice(i,i+w)
+            }
+            // document.getElementById("out").innerHTML = table.join("<br>")//.length
+            for(var i=0;i<table.length;i++){
+                for(var j=0;j<table[i].length;j++){
+                    let pix = table[i][j]
+                    let o = [(i==0)?null:table[i-1][j],(i==table.length-1)?null:table[i+1][j],(j==0)?null:table[i][j-1],(j==table[i].length-1)?null:table[i][j+1]]
+                    for(var p=0;p<o.length;p++){
+                        if(pix!=o[p]&&o[p]!=null){
+                            if(final[pix]&&!final[pix].includes(o[p])){
+                                final[pix].push(o[p])
+                            }else{
+                                final[pix] = [o[p]]
+                            }
+                        }
+                    }
+                }    
+            }
+            document.getElementById("out").innerHTML = "Done"//JSON.stringify(final)
+        }catch(e){document.getElementById("out").textContent = "Error: "+e}
+    }
+</script>
