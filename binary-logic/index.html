@@ -1,0 +1,499 @@
+<html style="cursor:default;">
+    <title>Binary Logic</title>
+    <body style="margin:0;border:0;position:fixed;">        
+        <canvas id="canvas"></canvas>
+        <div id="pointerText" style="z-index:100;top:0;position:fixed;background-color:rgba(240,240,240,0.8);">pointerDebugText</div>
+        <div id="out" style="z-index:100;bottom:0;position:fixed;background-color:rgba(240,240,240,0.8);">Warning Output</div>
+        <div id="error" style="z-index:100;right:0;top:0;position:fixed;background-color:rgba(240,240,240,0.8);">Error Log</div>
+        <script src="keyAndMouse.js"></script>
+    </body>
+</html>
+<script>
+    let tapTol = 5
+    let maxCallBack = 4
+    const cnv = document.getElementById("canvas");
+    const ctx = cnv.getContext("2d");
+    cnv.width = window.innerWidth;
+    cnv.height = window.innerHeight;
+    let mouseMatrix = [undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined]//mousedown x and y, mouseup x and y
+    document.addEventListener('mousedown', (e) => {
+        if(e.button==0){
+            mouseMatrix[0] = Mouse.x
+            mouseMatrix[1] = Mouse.y
+        }else if(e.button==1){
+            mouseMatrix[4] = Mouse.x
+            mouseMatrix[5] = Mouse.y
+        }else if(e.button==2){
+            mouseMatrix[8] = Mouse.x
+            mouseMatrix[9] = Mouse.y
+        }
+    });
+    document.addEventListener('mouseup', (e) => {
+        wdx = -1; wdy = -1; wux = -1; wuy = -1;
+        if(e.button==0){
+            mouseMatrix[2] = Mouse.x
+            mouseMatrix[3] = Mouse.y
+            wdx = 0; wdy = 1; wux = 2; wuy = 3;
+        }else if(e.button==1){
+            mouseMatrix[6] = Mouse.x
+            mouseMatrix[7] = Mouse.y
+            wdx = 4; wdy = 5; wux = 6; wuy = 7;
+        }else if(e.button==2){
+            mouseMatrix[10] = Mouse.x
+            mouseMatrix[11] = Mouse.y
+            wdx = 8; wdy = 9; wux = 10; wuy = 11;
+        }
+        if(mouseMatrix[wdx]!=undefined&&mouseMatrix[wdy]!=undefined){
+            if(Math.abs(mouseMatrix[0]-mouseMatrix[2])<tapTol&&Math.abs(mouseMatrix[1]-mouseMatrix[3])<tapTol){
+                registerTap(mouseMatrix[0],mouseMatrix[1],e.button)
+            }
+        }
+    });
+
+    let ox = 0, oy = 0, scale = 1
+    let blocks = {}
+    let nodes = {}
+    let connections = {}
+    let selection = {'type':"NONE", 'id':"xx"};
+    let dragging = false;
+    let blockDragOrgPos = [undefined,undefined]
+    let camDragOrgPos = [undefined,undefined]
+
+    let b1 = newBlock(7,0,"AND")
+    let b2 = newBlock(7,2,"OR")
+    newBlock(7,9,"SWITCH")
+    newBlock(7,10,"SWITCH")
+    newBlock(7,11,"SWITCH")
+    newBlock(14,6,"NOT")
+    newBlock(8,13,"ONE")
+    newBlock(8,15,"ZERO")
+    newBlock(10,10,"NOR")
+    newBlock(14,10,"XNOR")
+    newBlock(17,10,"NAND")
+    newBlock(14,8,"XOR")
+    update();
+    function update(){
+        let LineCheck = 0
+        try{
+            let oldScale = scale;
+            scale=Math.min(Math.max(scale-Mouse.zoom.deltaY/(1000/scale),0.1),3)
+            if(Mouse.zoom.deltaY!=0&&scale!=oldScale){
+                ox-=((Mouse.x-ox)*(scale/oldScale-1))
+                oy-=((Mouse.y-oy)*(scale/oldScale-1))
+            }
+
+            ctx.reset()
+            ctx.strokeStyle = "#777777"
+            ctx.lineWidth = 1
+            ctx.beginPath();
+            for(let i=ox%(40*scale);i<window.innerWidth;i+=(40*scale)){
+                ctx.moveTo(i,0);
+                ctx.lineTo(i,window.innerHeight);
+            }
+            for(let i=oy%(40*scale);i<window.innerHeight;i+=(40*scale)){
+                ctx.moveTo(0,i);
+                ctx.lineTo(window.innerWidth,i);
+            }
+            ctx.stroke();
+            ctx.closePath();
+            LineCheck = 1
+            ctx.lineWidth = scale*5
+            ctx.fillStyle = "#F9F9F9"
+            LineCheck = 2
+            for(var i=0;i<Object.keys(blocks).length;i++){
+                drawBlock(blocks[Object.keys(blocks)[i]].x,blocks[Object.keys(blocks)[i]].y,blocks[Object.keys(blocks)[i]].w,blocks[Object.keys(blocks)[i]].h,Object.keys(blocks)[i])
+            }
+            LineCheck = 2.5
+            for(var i=0;i<Object.keys(connections).length;i++){
+                let connection = connections[Object.keys(connections)[i]]
+                LineCheck = 2.6
+                drawLine(connection.node1, connection.node2)
+                LineCheck = 2.7
+            }
+            LineCheck = 3
+            if(selection.type=="NODE"){
+                ctx.beginPath()
+                LineCheck = 3.1
+                planCircleOnGrid(ox+nodes[selection.id].x()*40*scale,oy+nodes[selection.id].y()*40*scale,Math.sin(Date.now())+1)
+                LineCheck = 3.2
+                ctx.closePath()
+                ctx.fill()
+                ctx.stroke()
+            }
+
+            /*
+                MAGIC!
+                MAGIC I SAY!
+                THIS IS THE RESULT OF THREE REWRITES,
+                PONDERING THE ETHICS OF AI GENERATION, 
+                TAKING A SHOWER,
+                AND MAGICALLY COMING UP WITH THE SOLUTION THROUGH RANDOM EQUATIONS
+                ...
+                ......
+                ............
+                so really, it's just that last part that mattered...
+                I am too tired to be making actual comments but hey there's 
+                like two half useful comments in this whole thing so i have
+                to add something stupid like this.
+                who is gonna read this anyways? idk maybe I'll have to show 
+                code to the class at some point. Hello rest of the class! 
+                Sleep better than i have been! See yall around. Maybe it's almost
+                summer now. Have a great summer everybody.
+            */
+            if(Mouse.left&&((Math.abs(mouseMatrix[0]-Mouse.x)>tapTol||Math.abs(mouseMatrix[1]-Mouse.y)>tapTol)||dragging)){
+                LineCheck = 3.3
+                if(selection.type=="NONE"&&!dragging){
+                    let thing = getThingAtScreenCoords(mouseMatrix[0],mouseMatrix[1])
+                    if(thing.type=="NODE"){document.getElementById("canvas").style.cursor = 'pointer'}
+                    if(thing.type!="NONE"){
+                        selection = thing;
+                    }
+                }
+                LineCheck = 3.4
+                if(selection.type=="BLOCK"){
+                    block = blocks[selection.id]
+                    if(dragging){
+                        block.x = blockDragOrgPos[0]-blockDragOrgPos[2]+((Mouse.x/40/scale)-blockDragOrgPos[0])
+                        block.y = blockDragOrgPos[1]-blockDragOrgPos[3]+((Mouse.y/40/scale)-blockDragOrgPos[1])
+                    }else{
+                        blockDragOrgPos = [block.x,block.y,(Mouse.x-(block.x*40*scale))/40/scale,(Mouse.y-(block.y*40*scale))/40/scale]
+                    }
+                }else if(selection.type=="NODE"){
+                    ctx.lineWidth = 5*scale
+                    ctx.strokeStyle = (nodes[selection.id].result())?"#7777FF":"#CCCCCC"
+                    ctx.beginPath();
+                    ctx.moveTo(ox+nodes[selection.id].x()*40*scale,oy+nodes[selection.id].y()*40*scale);
+                    ctx.lineTo(Mouse.x,Mouse.y);
+                    ctx.closePath();
+                    ctx.stroke();
+                }else if(selection.type=="NONE"){
+                    if(dragging){
+                        ox = (camDragOrgPos[0]-camDragOrgPos[2]+((Mouse.x)-camDragOrgPos[0]))
+                        oy = (camDragOrgPos[1]-camDragOrgPos[3]+((Mouse.y)-camDragOrgPos[1]))
+                    }else{
+                        camDragOrgPos = [ox,oy,Mouse.x-ox,Mouse.y-oy]
+                    }
+                }
+                LineCheck = 3.5
+                dragging = true;
+            }
+
+            if(!Mouse.left&&(Math.abs(mouseMatrix[0]-Mouse.x)>tapTol||Math.abs(mouseMatrix[1]-Mouse.y)>tapTol)){
+                if(selection.type=="BLOCK"){
+                    selection = {type:"NONE",id:"xx"}
+                }else if(selection.type=="NODE"&&dragging){
+                    registerTap(Mouse.x,Mouse.y,0);
+                }
+                dragging = false;
+            }
+
+            document.getElementById("pointerText").style.left = Mouse.x+"px"
+            document.getElementById("pointerText").style.top = Mouse.y-20+"px"
+            document.getElementById("pointerText").innerText = `X:${Mouse.x} Y:${Mouse.y}\nL:${Mouse.left} M:${Mouse.middle} R:${Mouse.right}\nZDX:${Mouse.zoom.deltaX} ZDY:${Mouse.zoom.deltaY} ZDZ:${Mouse.zoom.deltaZ}\nOX:${ox} OY:${oy} S:${scale}\ngetThingAtScreenCoords(Mouse.x,Mouse.y):${jstr(getThingAtScreenCoords(Mouse.x,Mouse.y))}\nconnections:${jstr(connections)}\nselection:${jstr(selection)}`
+            document.getElementById("pointerText").innerText += `\n${camDragOrgPos}\n${dragging}\n${jstr(blocks[selection.id])}`
+            LineCheck = 4
+            // document.getElementById("pointerText").innerText = JSON.stringify(connections)
+        }catch(e){document.getElementById("error").innerText = e+" Bookmark: "+LineCheck}
+        requestAnimationFrame(update)
+    }
+    function drawRectOnGrid(x,y,w,h,f,s){
+        if(f){
+            ctx.fillRect(ox+(40*scale*x),oy+(40*scale*y),40*scale*w,40*scale*h);
+        }
+        if(s){
+            ctx.strokeRect(ox+(40*scale*x),oy+(40*scale*y),40*scale*w,40*scale*h);
+        }
+    }
+    function planCircleOnGrid(x,y,r){
+        ctx.moveTo(ox+(40*scale*x)+(40*scale*r),oy+(40*scale*y))
+        ctx.arc(ox+(40*scale*x),oy+(40*scale*y),r*40*scale,0,Math.PI*2);
+    }
+    function planTextOnGrid(x,y,t){
+        ctx.fillText(t,ox+(40*scale*x),oy+(40*scale*y))
+    }
+
+
+    function drawBlock(x,y,w,h,id){
+        ctx.beginPath()
+        ctx.fillStyle = "#F9F9F9"
+        drawRectOnGrid(x,y,w,h,true,true)
+        if(blocks[id].type=="NOT"){
+            drawNode(x,y+0.5,0.25,blocks[id].nodes[0])
+            drawNode(x+2,y+0.5,0.25,blocks[id].nodes[1])
+        }else if(blocks[id].type=="SWITCH"||blocks[id].type=="ZERO"||blocks[id].type=="ONE"){
+            drawNode(x+1,y+0.5,0.25,blocks[id].nodes[0])
+        }else{
+            drawNode(x,y+0.5,0.25,blocks[id].nodes[0])
+            drawNode(x,y+1.5,0.25,blocks[id].nodes[1])
+            drawNode(x+2,y+1,0.25,blocks[id].nodes[2])
+        }
+        ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
+        ctx.beginPath();
+        ctx.fillStyle = "#000000"
+        ctx.font = (26*scale)+"px arial"
+        if(blocks[id].type=="NOT"){
+            planTextOnGrid(x+.25,y+0.75,blocks[id].type)
+            // planTextOnGrid(x+2.5,y+0.75,JSON.stringify(blocks[id]))
+        }else if(blocks[id].type=="SWITCH"){
+            planTextOnGrid(x+.25,y+0.75,(blocks[id].switch)?" I":"O")
+            // planTextOnGrid(x+2.5,y+0.75,JSON.stringify(blocks[id]))
+        }else if(blocks[id].type=="ZERO"){
+            planTextOnGrid(x+.25,y+0.75,0)
+        }else if(blocks[id].type=="ONE"){
+            planTextOnGrid(x+.25,y+0.75,1)
+        }else{
+            planTextOnGrid(x+.25,y+1.2,blocks[id].type)
+            // planTextOnGrid(x+2.5,y+1.2,JSON.stringify(blocks[id]))
+        }
+        ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
+    }
+    function drawNode(x,y,r,id){
+        if(nodes[id].result()){
+            ctx.fillStyle = "#7777FF"
+        }else{
+            ctx.fillStyle = "#CCCCCC"
+        }
+        ctx.beginPath();
+        planCircleOnGrid(x,y,r)
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+    function newBlock(x,y,type){
+        let id = (type+Math.random());
+        blocks[id] = {
+            "type":type,
+            "x":x,
+            "y":y,
+            "w":2,
+            "h":2,
+            "nodes":[]
+        }
+
+        if(type=="NOT"){
+            let a = addNode("INPUT",[], id,0)
+            let c = addNode(type, [a], id,1)
+            blocks[id].nodes = [a,c]
+            blocks[id].h = 1
+        }else if(type=="SWITCH"||type=="ONE"||type=="ZERO"){
+            let c = addNode(type, [], id,0)
+            blocks[id].nodes = [c]
+            blocks[id].h = 1
+            blocks[id].w = 1
+        }else{
+            let a = addNode("INPUT",[], id,0)
+            let b = addNode("INPUT",[], id,1)
+            let c = addNode(type, [a,b], id,2)
+            blocks[id].nodes = [a,b,c]
+        }
+        return id;
+    }
+    //INPUT/AND/OR/NOT/XOR/XNOR/NAND/NOR/ONE/ZERO/SWITCH
+    function addNode(type, infrom, blockid, index){
+        let id = (type+Math.random());
+        nodes[id] = {
+            "block":blockid,
+            "infrom":infrom,
+            "type":type,
+            "id":id,
+            "x":function(){return 0},
+            "y":function(){return 0},
+            "result":function(){return false}
+        }
+
+        //90% of code comments be like:
+        //        /|       |\
+        //     `__\\       //__'
+        //        ||      ||
+        //      \__`\     |'__/
+        //        `_\\   //_'
+        //      |`-..\\_//..-'|
+        //      :  > |CAT| <  :
+        //      `./ __‾‾‾__ \,'
+        //       | (_O) (O_) |
+        //       ; __  .  __ :
+        //       `. / \|/ \ ,'
+        //         `,  _  .'
+        //         /       \
+        //        /         :
+        //       :          |_
+        //      ,|  .    .  | \
+        //     : :   \   |  |  :
+        //     |  \   :`-;  ;  |
+        //     :   :  | /  /   ;
+        //      :-.'  ;'  / _,'`------.
+        //      `'`''-`'''-'-''--.---  )
+        //                       `----'
+        //based on a meme i saw 2 hours and 54 minutes ago
+        //no i did not make this cat myself
+        //here have some antlers on the cat
+        //why? idk man i thought it'd be funny
+        //deercat idk
+
+        if(type=="AND"){
+            nodes[id].result = function(){try{return nodes[infrom[0]].result()&&nodes[infrom[1]].result()}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nAND";return false;}}
+        }else if(type=="OR"){
+            nodes[id].result = function(){try{return nodes[infrom[0]].result()||nodes[infrom[1]].result()}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nOR";return false}}
+        }else if(type=="NOT"){
+            nodes[id].result = function(){try{return !nodes[infrom[0]].result()}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nNOT";return false}}
+        }else if(type=="XOR"){
+            nodes[id].result = function(){try{return (nodes[infrom[0]].result()||nodes[infrom[1]].result())&&!(nodes[infrom[0]].result()&&nodes[infrom[1]].result())}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nXOR";return false}}
+        }else if(type=="XNOR"){
+            nodes[id].result = function(){try{return !((nodes[infrom[0]].result()||nodes[infrom[1]].result())&&!(nodes[infrom[0]].result()&&nodes[infrom[1]].result()))}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nXNOR";return false}}
+        }else if(type=="NAND"){
+            nodes[id].result = function(){try{return !(nodes[infrom[0]].result()&&nodes[infrom[1]].result())}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nNAND";return false}}
+        }else if(type=="NOR"){
+            nodes[id].result = function(){try{return !nodes[infrom[0]].result()&&!nodes[infrom[1]].result()}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nNOR";return false}}
+        }else if(type=="SWITCH"){
+            blocks[blockid].switch = false;
+            nodes[id].result = function(){return blocks[blockid].switch}
+        }else if(type=="ZERO"){
+            nodes[id].result = function(){return false}
+        }else if(type=="ONE"){
+            nodes[id].result = function(){return true}
+        }
+        if(type=="NOT"){
+            if(index==0){
+                nodes[id].x = function(){return blocks[nodes[id].block].x+0}
+                nodes[id].y = function(){return blocks[nodes[id].block].y+0.5}
+            }else if(index==1){
+                nodes[id].x = function(){return blocks[nodes[id].block].x+2}
+                nodes[id].y = function(){return blocks[nodes[id].block].y+0.5}
+            }
+        }else if(type=="SWITCH"||type=="ZERO"||type=="ONE"){
+            nodes[id].x = function(){return blocks[nodes[id].block].x+1}
+            nodes[id].y = function(){return blocks[nodes[id].block].y+0.5}
+        }else{
+            if(index==0){
+                nodes[id].x = function(){return blocks[nodes[id].block].x+0}
+                nodes[id].y = function(){return blocks[nodes[id].block].y+0.5}
+            }else if(index==1){
+                nodes[id].x = function(){return blocks[nodes[id].block].x+0}
+                nodes[id].y = function(){return blocks[nodes[id].block].y+1.5}
+            }else if(index==2){
+                nodes[id].x = function(){return blocks[nodes[id].block].x+2}
+                nodes[id].y = function(){return blocks[nodes[id].block].y+1}
+            }
+        }
+        return id;
+    }
+    function getThingAtScreenCoords(x,y){
+        let id = 'xx';
+        let ty = "NONE";
+        for(var i=0;i<Object.keys(blocks).length;i++){
+            let block = blocks[Object.keys(blocks)[i]]
+            let bx1 = ox+(40*scale*block.x);
+            let by1 = oy+(40*scale*block.y);
+            let bx2 = bx1+(40*scale*block.w);
+            let by2 = by1+(40*scale*block.h);
+            if(x>bx1&&x<bx2&&y>by1&&y<by2){
+                id = Object.keys(blocks)[i]
+                ty = "BLOCK"
+                // ctx.fillRect(bx1,by1,bx2-bx1,by2-by1)
+            }
+        }
+        for(var i=0;i<Object.keys(nodes).length;i++){
+            let node = nodes[Object.keys(nodes)[i]]
+            let nx = ox+(40*scale*node.x());
+            let ny = oy+(40*scale*node.y());
+            if(Math.abs(nx-x)<(25/2)*scale&&Math.abs(ny-y)<(25/2)*scale){
+                id = Object.keys(nodes)[i];
+                ty = "NODE";
+                // ctx.arc(nx,ny,25/2,0,Math.PI*2)
+                // ctx.fill()
+            }
+        }
+        return {'type':ty, 'id':id}
+    }
+    function createConnector(node1id,node2id){
+        if(nodes[node1id].type=="INPUT"&&nodes[node2id].type!="INPUT"){
+            nodes[node1id].result = function(){return nodes[node2id].result()}
+            nodes[node1id].infrom = [node2id]
+        }else if(nodes[node1id].type!="INPUT"&&nodes[node2id].type=="INPUT"){
+            nodes[node2id].result = function(){return nodes[node1id].result()}
+            nodes[node2id].infrom = [node1id]
+        }else{
+            //give up and die idk
+        }
+        connections["CONN"+node1id+"NECT"+node2id] = {node1:node1id, node2:node2id}
+    }
+    function deleteConnector(node1id,node2id){
+        if(nodes[node1id].type=="INPUT"&&nodes[node2id].type!="INPUT"){
+            nodes[node1id].result = function(){return false}
+            nodes[node1id].infrom = []
+        }else if(nodes[node1id].type!="INPUT"&&nodes[node2id].type=="INPUT"){
+            nodes[node2id].result = function(){return false}
+            nodes[node2id].infrom = []
+        }
+        try{delete connections["CONN"+node1id+"NECT"+node2id]}catch(e){}
+        try{delete connections["CONN"+node2id+"NECT"+node1id]}catch(e){}
+        document.getElementById("error").innerText = node1id
+    }
+    function drawLine(node1id, node2id){
+        let n1=nodes[node1id]
+        let n2=nodes[node2id]
+        if((n1.type=="INPUT"&&n1.result())||(n2.type=="INPUT"&&n2.result())){
+            ctx.strokeStyle = "#7777FF"
+        }else{
+            ctx.strokeStyle = "#CCCCCC"
+        }
+        ctx.lineWidth = 5*scale
+        ctx.beginPath();
+        // document.getElementById("out").innerText = jstr(n1)+"\n"+jstr(n2)
+        ctx.moveTo(ox+n1.x()*40*scale,oy+n1.y()*40*scale);
+        ctx.lineTo(ox+n2.x()*40*scale,oy+n2.y()*40*scale);
+        ctx.closePath();
+        ctx.stroke();
+    }
+    function jstr(s){return JSON.stringify(s)}
+    function registerTap(x,y,m){
+        let thing = getThingAtScreenCoords(Mouse.x,Mouse.y)
+        if(thing.type=="NODE"&&selection.type=="NONE"){
+            selection = thing;
+        }else if((thing.type=="NODE"&&selection.type=="NODE"&& (nodes[selection.id].block!=nodes[thing.id].block) &&((selection.id.includes("INPUT")&&!thing.id.includes("INPUT"))||(thing.id.includes("INPUT")&&!selection.id.includes("INPUT")))) ){
+            if(Object.keys(connections).includes("CONN"+thing.id+"NECT"+selection.id)||Object.keys(connections).includes("CONN"+selection.id+"NECT"+thing.id)){
+                deleteConnector(thing.id,selection.id)
+                deleteConnector(selection.id,thing.id)
+            }else{
+                if((!thing.id.includes("INPUT")&&false==loopCheck(thing.id, selection.id,"TS"))||(!selection.id.includes("INPUT")&&false==loopCheck(selection.id, thing.id,"ST"))){
+                    if(selection.id.includes("INPUT")){
+                        if(nodes[selection.id].infrom.length!=0){
+                            deleteConnector(nodes[selection.id].infrom[0],selection.id)
+                        }
+                    }else if(thing.id.includes("INPUT")){
+                        if(nodes[thing.id].infrom.length!=0){
+                            deleteConnector(nodes[thing.id].infrom[0],thing.id)
+                        }
+                    }
+                    createConnector(thing.id,selection.id)
+                }else{
+                    alert("this would create a loop and potentially crash the program.\nDebug:\n"+`T:${thing.id}\nS:${selection.id}\nTSD:${loopCheck(thing.id,selection.id,"D")+"\nSTD:"+loopCheck(selection.id,thing.id,"D")}`)
+                }
+            }
+            if(!Key.isDown(Key.ctrl)){
+                selection = {'type':"NONE", 'id':"xx"}
+            }
+        }
+        if(thing.type=="NONE"||(thing.type=="BLOCK"&&selection.type=="NODE")||(thing.type=="NONE"&&selection.type=="NODE")){
+            if(!Key.isDown(Key.ctrl)){
+                selection = {'type':"NONE", 'id':"xx"}
+            }
+        }
+        if(thing.type=="BLOCK"&&thing.id.startsWith("SWITCH")){
+            blocks[thing.id].switch = !blocks[thing.id].switch
+        }
+        document.getElementById("out").innerText = x+" "+y+" "+m+" "+thing.type
+    }
+    function loopCheck(nodeid, target, trace){
+        for(var i=0;i<nodes[nodeid].infrom.length;i++){
+            if(nodes[nodeid].infrom[i]==target||loopCheck(nodes[nodeid].infrom[i], target, trace+nodeid)){
+                return trace+nodeid;
+            }
+        }
+        return false;
+    }
+</script>
