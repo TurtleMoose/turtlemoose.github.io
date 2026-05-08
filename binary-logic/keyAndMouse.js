@@ -19,7 +19,9 @@
     window.addEventListener("keydown", (e) => window.Key.keydown(e));
 
     window.Mouse = {left:false, middle:false, right:false, x:0, y:0, zoom:{deltaX:0, deltaY:0, deltaZ:0}};
-
+    window.addEventListener('blur', () => {
+        Key.pressed = {}
+    });
     //disables context menu on right click
     window.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener('mousedown', (e) => {
