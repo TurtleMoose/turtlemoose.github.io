@@ -5,17 +5,16 @@
         <div id="pointerText" style="z-index:100;top:0;position:fixed;background-color:rgba(240,240,240,0.8);">pointerDebugText</div>
         <div id="out" style="z-index:100;bottom:0;position:fixed;background-color:rgba(240,240,240,0.8);">Warning Output</div>
         <div id="error" style="z-index:100;right:0;top:0;position:fixed;background-color:rgba(240,240,240,0.8);">Error Log</div>
-        <div style="z-index:100;right:35%;top:0;width:30%;position:fixed;text-align:center;background-color:rgba(200,200,200,1);">Entirely unfinished. Saved as example.</div>
+        <!-- <div style="z-index:100;right:35%;top:0;width:30%;position:fixed;text-align:center;background-color:rgba(200,200,200,1);">Entirely unfinished. Saved as example.</div> -->
         <script src="keyAndMouse.js"></script>
     </body>
 </html>
 <script>
-    let tapTol = 5
+    const menuwidth = 40*6
+    let tapTol = 2
     let maxCallBack = 4
     const cnv = document.getElementById("canvas");
     const ctx = cnv.getContext("2d");
-    cnv.width = window.innerWidth;
-    cnv.height = window.innerHeight;
     let mouseMatrix = [undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined]//mousedown x and y, mouseup x and y
     document.addEventListener('mousedown', (e) => {
         if(e.button==0){
@@ -51,7 +50,7 @@
         }
     });
 
-    let ox = 0, oy = 0, scale = 1
+    let ox = menuwidth, oy = 0, scale = 1
     let blocks = {}
     let nodes = {}
     let connections = {}
@@ -59,25 +58,77 @@
     let dragging = false;
     let blockDragOrgPos = [undefined,undefined]
     let camDragOrgPos = [undefined,undefined]
+    let backintime = [undefined,undefined]
+    let menublocks = [
+        [menuwidth/12,menuwidth/12,menuwidth/3,menuwidth/3,"AND"],                                //and
+        [menuwidth/12+menuwidth/2,menuwidth/12,menuwidth/3,menuwidth/3,"OR"],                     //or
+        [menuwidth/12,menuwidth/12+menuwidth/2,menuwidth/3,menuwidth/3,"NOR"],                    //nor
+        [menuwidth/12+menuwidth/2,menuwidth/12+menuwidth/2,menuwidth/3,menuwidth/3,"NAND"],       //nand
+        [menuwidth/12,menuwidth/12+menuwidth,menuwidth/3,menuwidth/3,"XOR"],                      //xor
+        [menuwidth/12+menuwidth/2,menuwidth/12+menuwidth,menuwidth/3,menuwidth/3,"XNOR"],         //xnor
+        [menuwidth/12,menuwidth/12+menuwidth*3/2,menuwidth/3,menuwidth/6,"NOT"],                  //not
+        [menuwidth/12+menuwidth/2,menuwidth/12+menuwidth*3/2,menuwidth/3,menuwidth/6,"BULB"], 
+        [menuwidth/12,menuwidth/12+menuwidth*3/2+menuwidth/3,menuwidth/6,menuwidth/6,"SWITCH"],   //switch
+        [menuwidth/12*5,menuwidth/12+menuwidth*3/2+menuwidth/3,menuwidth/6,menuwidth/6,"ONE"],    //one
+        [menuwidth/12*9,menuwidth/12+menuwidth*3/2+menuwidth/3,menuwidth/6,menuwidth/6,"ZERO"],   //zero
+        
+        // [menuwidth/12*9,menuwidth/12+menuwidth*3/1.5+menuwidth/3,menuwidth/6,menuwidth/6,"LOL"],   //lol test block
+    ]
+    let blocksizes = [ 
+        undefined, //no 0x0/0x1/0x2
+        [ 
+            undefined, //no 1x0
+            ["ONE","ZERO","SWITCH"],//1x1
+            [] //1x2
+        ], 
+        [ 
+            undefined,//no 2x0
+            ["NOT", "BULB"],//2x1
+            ["AND","OR","NAND","XNOR","XOR","NOR"] //2x2
+        ],
+        [
+            undefined,
+            [],
+            ["LOL"]
+        ]
+    ]
 
-    let b1 = newBlock(7,0,"AND")
-    let b2 = newBlock(7,2,"OR")
-    newBlock(7,9,"SWITCH")
-    newBlock(7,10,"SWITCH")
-    newBlock(7,11,"SWITCH")
-    newBlock(14,6,"NOT")
-    newBlock(8,13,"ONE")
-    newBlock(8,15,"ZERO")
-    newBlock(10,10,"NOR")
-    newBlock(14,10,"XNOR")
-    newBlock(17,10,"NAND")
-    newBlock(14,8,"XOR")
+    let b1 = newBlock(7,4,"XOR")
+    let b3 = newBlock(11,4,"XOR")
+    let b4 = newBlock(11,7,"AND")
+    let b5 = newBlock(11,10,"AND")
+    let b2 = newBlock(15,8.5,"OR")
+    let s1 = newBlock(4,4,"SWITCH")
+    let s2 = newBlock(4,6,"SWITCH")
+    let s3 = newBlock(4,8,"SWITCH")
+    let l1 = newBlock(17,4.5,"BULB")
+    let l2 = newBlock(19,9,"BULB")
+
+    createConnector(blocks[s1].nodes[0],blocks[b1].nodes[0])
+    createConnector(blocks[s1].nodes[0],blocks[b5].nodes[0])
+    createConnector(blocks[s2].nodes[0],blocks[b1].nodes[1])
+    createConnector(blocks[s2].nodes[0],blocks[b5].nodes[1])
+    
+    createConnector(blocks[s3].nodes[0],blocks[b3].nodes[1])
+    createConnector(blocks[s3].nodes[0],blocks[b4].nodes[0])
+
+    createConnector(blocks[b1].nodes[2],blocks[b3].nodes[0])
+    createConnector(blocks[b1].nodes[2],blocks[b4].nodes[1])
+    
+    createConnector(blocks[b4].nodes[2],blocks[b2].nodes[0])
+    createConnector(blocks[b5].nodes[2],blocks[b2].nodes[1])
+
+    createConnector(blocks[l1].nodes[0],blocks[b3].nodes[2])
+    createConnector(blocks[l2].nodes[0],blocks[b2].nodes[2])
+
     update();
     function update(){
+        cnv.width = window.innerWidth;
+        cnv.height = window.innerHeight;
         let LineCheck = 0
         try{
             let oldScale = scale;
-            scale=Math.min(Math.max(scale-Mouse.zoom.deltaY/(1000/scale),0.1),3)
+            scale=Math.min(Math.max(scale-((Mouse.x<menuwidth)?0:Mouse.zoom.deltaY/(1000/scale)),0.1),3)
             if(Mouse.zoom.deltaY!=0&&scale!=oldScale){
                 ox-=((Mouse.x-ox)*(scale/oldScale-1))
                 oy-=((Mouse.y-oy)*(scale/oldScale-1))
@@ -112,19 +163,30 @@
                 LineCheck = 2.7
             }
             LineCheck = 3
+            //pulse
             if(selection.type=="NODE"){
+                ctx.strokeStyle = "#777777"
+                if(nodes[selection.id].result()){
+                    ctx.fillStyle = "#7777FF"
+                }else{
+                    ctx.fillStyle = "#CCCCCC"
+                }
                 ctx.beginPath()
                 LineCheck = 3.1
-                planCircleOnGrid(ox+nodes[selection.id].x()*40*scale,oy+nodes[selection.id].y()*40*scale,Math.sin(Date.now())+1)
+                planCircleOnGrid(nodes[selection.id].x(),nodes[selection.id].y(),(Math.sin(Date.now()/300)+2)/6)
                 LineCheck = 3.2
                 ctx.closePath()
                 ctx.fill()
                 ctx.stroke()
             }
+            ctx.fillStyle = "rgba(0,0,0,0.8)"
+            ctx.fillRect(0,0,menuwidth,window.innerHeight)
+            for(var i=0;i<menublocks.length;i++){
+                // drawFakeBlock((menublocks[i][0]-ox)/40/scale,(menublocks[i][1]-oy)/40/scale,menublocks[i][2]/40/scale,menublocks[i][3]/40/scale,menublocks[i][4])
+                ctx.fillRect(menublocks[i][0],menublocks[i][1],menublocks[i][2],menublocks[i][3])
+            }
 
             /*
-                MAGIC!
-                MAGIC I SAY!
                 THIS IS THE RESULT OF THREE REWRITES,
                 PONDERING THE ETHICS OF AI GENERATION, 
                 TAKING A SHOWER,
@@ -143,7 +205,7 @@
             */
             if(Mouse.left&&((Math.abs(mouseMatrix[0]-Mouse.x)>tapTol||Math.abs(mouseMatrix[1]-Mouse.y)>tapTol)||dragging)){
                 LineCheck = 3.3
-                if(selection.type=="NONE"&&!dragging){
+                if(selection.type=="NONE"&&!dragging&&Mouse.x>menuwidth){
                     let thing = getThingAtScreenCoords(mouseMatrix[0],mouseMatrix[1])
                     if(thing.type=="NODE"){document.getElementById("canvas").style.cursor = 'pointer'}
                     if(thing.type!="NONE"){
@@ -151,7 +213,7 @@
                     }
                 }
                 LineCheck = 3.4
-                if(selection.type=="BLOCK"){
+                if(selection.type=="BLOCK"&&(Mouse.x>menuwidth||dragging)){
                     block = blocks[selection.id]
                     if(dragging){
                         block.x = blockDragOrgPos[0]-blockDragOrgPos[2]+((Mouse.x/40/scale)-blockDragOrgPos[0])
@@ -159,7 +221,7 @@
                     }else{
                         blockDragOrgPos = [block.x,block.y,(Mouse.x-(block.x*40*scale))/40/scale,(Mouse.y-(block.y*40*scale))/40/scale]
                     }
-                }else if(selection.type=="NODE"){
+                }else if(selection.type=="NODE"&&(Mouse.x>menuwidth||dragging)){
                     ctx.lineWidth = 5*scale
                     ctx.strokeStyle = (nodes[selection.id].result())?"#7777FF":"#CCCCCC"
                     ctx.beginPath();
@@ -167,12 +229,39 @@
                     ctx.lineTo(Mouse.x,Mouse.y);
                     ctx.closePath();
                     ctx.stroke();
-                }else if(selection.type=="NONE"){
+                }else if(selection.type=="NONE"&&(Mouse.x>menuwidth||dragging)){
                     if(dragging){
                         ox = (camDragOrgPos[0]-camDragOrgPos[2]+((Mouse.x)-camDragOrgPos[0]))
                         oy = (camDragOrgPos[1]-camDragOrgPos[3]+((Mouse.y)-camDragOrgPos[1]))
                     }else{
                         camDragOrgPos = [ox,oy,Mouse.x-ox,Mouse.y-oy]
+                    }
+                }else if(selection.type=="NONE"&&!dragging&&Mouse.x<menuwidth){
+                    selection.type="MENU"
+                    for(var i=0;i<menublocks.length;i++){
+                        if(Mouse.x>menublocks[i][0]&&Mouse.y>menublocks[i][1]&&Mouse.x<menublocks[i][0]+menublocks[i][2]&&Mouse.y<menublocks[i][1]+menublocks[i][3]){
+                            backintime=[Mouse.x-menublocks[i][0],Mouse.y-menublocks[i][1]]
+                        }
+                    }
+                }
+                //0and 1or 2nor 3nand 4xor 5xnor 6not 7switch 8one 9zero
+                document.getElementById("pointerText").innerText = "nothing"
+                if(selection.type=="MENU"){
+
+                    if(selection.id=="xx"){
+                        let block2="xx"
+                        ctx.strokeStyle = "#777777"
+                        for(var i=0;i<menublocks.length;i++){
+                            if(Mouse.x>menublocks[i][0]&&Mouse.y>menublocks[i][1]&&Mouse.x<menublocks[i][0]+menublocks[i][2]&&Mouse.y<menublocks[i][1]+menublocks[i][3]){
+                                block2=menublocks[i][4]
+                            }
+                        }
+
+                        selection.id = block2
+                        document.getElementById("pointerText").innerText = block2
+                    }else{
+                        drawFakeBlock((Mouse.x-ox-backintime[0])/40/scale,(Mouse.y-oy-backintime[1])/40/scale,getBlockSize(selection.id).w,getBlockSize(selection.id).h,selection.id)
+                        document.getElementById("pointerText").innerText = "dragging "+jstr(selection)+backintime
                     }
                 }
                 LineCheck = 3.5
@@ -180,22 +269,91 @@
             }
 
             if(!Mouse.left&&(Math.abs(mouseMatrix[0]-Mouse.x)>tapTol||Math.abs(mouseMatrix[1]-Mouse.y)>tapTol)){
-                if(selection.type=="BLOCK"){
-                    selection = {type:"NONE",id:"xx"}
-                }else if(selection.type=="NODE"&&dragging){
+                if(selection.type=="NODE"&&dragging){
                     registerTap(Mouse.x,Mouse.y,0);
                 }
+                if(selection.type=="MENU"&&selection.id!="xx"&&Mouse.x>menuwidth){
+                    newBlock((Mouse.x-ox-backintime[0])/40/scale,(Mouse.y-oy-backintime[1])/40/scale,selection.id)
+                    selection = {type:"NONE",id:"xx"}
+                    
+                }
                 dragging = false;
+                if(selection.type=="BLOCK"){
+                    if(Mouse.x<menuwidth){
+                        deleteBlock(selection.id)
+                    }
+                    selection = {type:"NONE",id:"xx"}
+                }
+            }
+            if(!Key.isDown(Key.ctrl)&&!Mouse.left&&!dragging&&selection.type!="NONE"){
+                selection = {'type':"NONE", 'id':"xx"}
+            }
+            if(Key.isDown(Key.ctrl)&&!Mouse.left&&selection.type=="NODE"){
+                ctx.lineWidth = 5*scale
+                ctx.strokeStyle = (nodes[selection.id].result())?"#7777FF":"#CCCCCC"
+                ctx.beginPath();
+                ctx.moveTo(ox+nodes[selection.id].x()*40*scale,oy+nodes[selection.id].y()*40*scale);
+                ctx.lineTo(Mouse.x,Mouse.y);
+                ctx.closePath();
+                ctx.stroke();
             }
 
             document.getElementById("pointerText").style.left = Mouse.x+"px"
             document.getElementById("pointerText").style.top = Mouse.y-20+"px"
-            document.getElementById("pointerText").innerText = `X:${Mouse.x} Y:${Mouse.y}\nL:${Mouse.left} M:${Mouse.middle} R:${Mouse.right}\nZDX:${Mouse.zoom.deltaX} ZDY:${Mouse.zoom.deltaY} ZDZ:${Mouse.zoom.deltaZ}\nOX:${ox} OY:${oy} S:${scale}\ngetThingAtScreenCoords(Mouse.x,Mouse.y):${jstr(getThingAtScreenCoords(Mouse.x,Mouse.y))}\nconnections:${jstr(connections)}\nselection:${jstr(selection)}`
-            document.getElementById("pointerText").innerText += `\n${camDragOrgPos}\n${dragging}\n${jstr(blocks[selection.id])}`
+            // document.getElementById("pointerText").innerText = `X:${Mouse.x} Y:${Mouse.y}\nL:${Mouse.left} M:${Mouse.middle} R:${Mouse.right}\nZDX:${Mouse.zoom.deltaX} ZDY:${Mouse.zoom.deltaY} ZDZ:${Mouse.zoom.deltaZ}\nOX:${ox} OY:${oy} S:${scale}\nhovering:${jstr(getThingAtScreenCoords(Mouse.x,Mouse.y))}\nselection:${jstr(selection)}`
+            // document.getElementById("pointerText").innerText = "B\n"+Object.keys(blocks).join("\n")+'\nN\n'+Object.keys(nodes).join("\n")+'\nC\n'+Object.keys(connections).join("\n")//`\n${camDragOrgPos}\n${dragging}\n${jstr(blocks[selection.id])}`
             LineCheck = 4
             // document.getElementById("pointerText").innerText = JSON.stringify(connections)
         }catch(e){document.getElementById("error").innerText = e+" Bookmark: "+LineCheck}
         requestAnimationFrame(update)
+    }
+    function drawFakeBlock(x,y,w,h,type){
+        ctx.beginPath()
+        ctx.fillStyle = "#F9F9F9"
+        ctx.strokeStyle = "#777777"
+        drawRectOnGrid(x,y,w,h,true,true)
+
+        ctx.fillStyle = "#CCCCCC"
+        ctx.beginPath();
+        if(type=="NOT"){
+            planCircleOnGrid(x+0,y+0.5,0.25)
+            planCircleOnGrid(x+2,y+0.5,0.25)
+        }else if(type=="SWITCH"||type=="ZERO"||type=="ONE"){
+            planCircleOnGrid(x+1,y+0.5,0.25)
+        }else if(type=="BULB"){
+            planCircleOnGrid(x+0,y+0.5,0.25)
+        }else{
+            planCircleOnGrid(x+0,y+0.5,0.25)
+            planCircleOnGrid(x+0,y+1.5,0.25)
+            planCircleOnGrid(x+2,y+1,0.25)
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
+        ctx.beginPath();
+        ctx.fillStyle = "#000000"
+        ctx.font = (26)+"px arial"
+        if(type=="NOT"||type=="BULB"){
+            planTextOnGrid(x+.25,y+0.75,type)
+            // planTextOnGrid(x+2.5,y+0.75,JSON.stringify(blocks[id]))
+        }else if(type=="SWITCH"){
+            planTextOnGrid(x+.25,y+0.75,"O")
+            // planTextOnGrid(x+2.5,y+0.75,JSON.stringify(blocks[id]))
+        }else if(type=="ZERO"){
+            planTextOnGrid(x+.25,y+0.75,0)
+        }else if(type=="ONE"){
+            planTextOnGrid(x+.25,y+0.75,1)
+        }else{
+            planTextOnGrid(x+.25,y+1.2,type)
+            // planTextOnGrid(x+2.5,y+1.2,JSON.stringify(blocks[id]))
+        }
+        ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
     }
     function drawRectOnGrid(x,y,w,h,f,s){
         if(f){
@@ -221,6 +379,8 @@
         if(blocks[id].type=="NOT"){
             drawNode(x,y+0.5,0.25,blocks[id].nodes[0])
             drawNode(x+2,y+0.5,0.25,blocks[id].nodes[1])
+        }else if(blocks[id].type=="BULB"){
+            drawNode(x,y+0.5,0.25,blocks[id].nodes[0])
         }else if(blocks[id].type=="SWITCH"||blocks[id].type=="ZERO"||blocks[id].type=="ONE"){
             drawNode(x+1,y+0.5,0.25,blocks[id].nodes[0])
         }else{
@@ -234,7 +394,7 @@
         ctx.beginPath();
         ctx.fillStyle = "#000000"
         ctx.font = (26*scale)+"px arial"
-        if(blocks[id].type=="NOT"){
+        if(blocks[id].type=="NOT"||blocks[id].type=="BULB"){
             planTextOnGrid(x+.25,y+0.75,blocks[id].type)
             // planTextOnGrid(x+2.5,y+0.75,JSON.stringify(blocks[id]))
         }else if(blocks[id].type=="SWITCH"){
@@ -251,6 +411,10 @@
         ctx.fill();
         ctx.stroke();
         ctx.closePath();
+        if(blocks[id].type=="BULB"){
+            ctx.fillStyle = (nodes[blocks[id].nodes[0]].result())?"#7777FF":"#CCCCCC"
+            ctx.fillRect((x+1)*40*scale+ox,(y)*40*scale+oy,40*scale,40*scale)
+        }
     }
     function drawNode(x,y,r,id){
         if(nodes[id].result()){
@@ -274,11 +438,15 @@
             "h":2,
             "nodes":[]
         }
-
+        
         if(type=="NOT"){
             let a = addNode("INPUT",[], id,0)
             let c = addNode(type, [a], id,1)
             blocks[id].nodes = [a,c]
+            blocks[id].h = 1
+        }else if(type=="BULB"){
+            let a = addNode("INPUT",[], id,0)
+            blocks[id].nodes = [a]
             blocks[id].h = 1
         }else if(type=="SWITCH"||type=="ONE"||type=="ZERO"){
             let c = addNode(type, [], id,0)
@@ -292,6 +460,33 @@
             blocks[id].nodes = [a,b,c]
         }
         return id;
+    }
+    function deleteBlock(id){
+        for(var i=0;i<Object.keys(connections).length;i++){
+            if( connections[Object.keys(connections)[i]].node1==blocks[id].nodes[0]||connections[Object.keys(connections)[i]].node2==blocks[id].nodes[0] ){
+                try{deleteConnector(connections[Object.keys(connections)[i]].node1, connections[Object.keys(connections)[i]].node2)}catch(e){}
+                i--
+            }
+            if( connections[Object.keys(connections)[i]].node1==blocks[id].nodes[1]||connections[Object.keys(connections)[i]].node2==blocks[id].nodes[1] ){
+                try{deleteConnector(connections[Object.keys(connections)[i]].node1, connections[Object.keys(connections)[i]].node2)}catch(e){}
+                i--
+            }
+            if( connections[Object.keys(connections)[i]].node1==blocks[id].nodes[2]||connections[Object.keys(connections)[i]].node2==blocks[id].nodes[2] ){
+                try{deleteConnector(connections[Object.keys(connections)[i]].node1, connections[Object.keys(connections)[i]].node2)}catch(e){}
+                i--
+            }
+            if( connections[Object.keys(connections)[i]].node1==blocks[id].nodes[3]||connections[Object.keys(connections)[i]].node2==blocks[id].nodes[3] ){
+                try{deleteConnector(connections[Object.keys(connections)[i]].node1, connections[Object.keys(connections)[i]].node2)}catch(e){}
+                i--
+            }
+        }
+        for(var i of blocks[id].nodes){
+            delete nodes[i]
+        }
+        for(var i=0;i<Object.keys(connections).length;i++){
+            // if(connections)
+        }
+        delete blocks[id]
     }
     //INPUT/AND/OR/NOT/XOR/XNOR/NAND/NOR/ONE/ZERO/SWITCH
     function addNode(type, infrom, blockid, index){
@@ -342,13 +537,13 @@
         }else if(type=="NOT"){
             nodes[id].result = function(){try{return !nodes[infrom[0]].result()}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nNOT";return false}}
         }else if(type=="XOR"){
-            nodes[id].result = function(){try{return (nodes[infrom[0]].result()||nodes[infrom[1]].result())&&!(nodes[infrom[0]].result()&&nodes[infrom[1]].result())}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nXOR";return false}}
+            nodes[id].result = function(){try{return nodes[infrom[0]].result()!=nodes[infrom[1]].result()}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nXOR";return false}}
         }else if(type=="XNOR"){
-            nodes[id].result = function(){try{return !((nodes[infrom[0]].result()||nodes[infrom[1]].result())&&!(nodes[infrom[0]].result()&&nodes[infrom[1]].result()))}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nXNOR";return false}}
+            nodes[id].result = function(){try{return nodes[infrom[0]].result()==nodes[infrom[1]].result()}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nXNOR";return false}}
         }else if(type=="NAND"){
             nodes[id].result = function(){try{return !(nodes[infrom[0]].result()&&nodes[infrom[1]].result())}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nNAND";return false}}
         }else if(type=="NOR"){
-            nodes[id].result = function(){try{return !nodes[infrom[0]].result()&&!nodes[infrom[1]].result()}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nNOR";return false}}
+            nodes[id].result = function(){try{return !(nodes[infrom[0]].result()||nodes[infrom[1]].result())}catch(e){document.getElementById("error").innerText=e+'\n'+Date.now()+"\nNOR";return false}}
         }else if(type=="SWITCH"){
             blocks[blockid].switch = false;
             nodes[id].result = function(){return blocks[blockid].switch}
@@ -432,7 +627,7 @@
         }
         try{delete connections["CONN"+node1id+"NECT"+node2id]}catch(e){}
         try{delete connections["CONN"+node2id+"NECT"+node1id]}catch(e){}
-        document.getElementById("error").innerText = node1id
+        document.getElementById("error").innerText = "DEL/"+node1id
     }
     function drawLine(node1id, node2id){
         let n1=nodes[node1id]
@@ -496,5 +691,15 @@
             }
         }
         return false;
+    }
+    function getBlockSize(type){
+        for(var i=1;i<blocksizes.length;i++){
+            for(var j=1;j<blocksizes[i].length;j++){
+                if(blocksizes[i][j].includes(type)){
+                    return {'w':i,'h':j}
+                }
+            }
+        }
+        return {'w':100,'h':100}
     }
 </script>
