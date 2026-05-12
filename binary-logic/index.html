@@ -2,9 +2,9 @@
     <title>Binary Logic</title>
     <body style="margin:0;border:0;position:fixed;">        
         <canvas id="canvas"></canvas>
-        <div id="pointerText" style="z-index:100;top:0;position:fixed;background-color:rgba(240,240,240,0.8);">pointerDebugText</div>
-        <div id="out" style="z-index:100;bottom:0;position:fixed;background-color:rgba(240,240,240,0.8);">Warning Output</div>
-        <div id="error" style="z-index:100;right:0;top:0;position:fixed;background-color:rgba(240,240,240,0.8);">Error Log</div>
+        <div id="pointerText" style="display:none;z-index:100;top:0;position:fixed;background-color:rgba(240,240,240,0.8);">pointerDebugText</div>
+        <div id="out" style="z-index:100;bottom:0;display:none;position:fixed;background-color:rgba(240,240,240,0.8);">Warning Output</div>
+        <div id="error" style="z-index:100;right:0;top:0;display:none;position:fixed;background-color:rgba(240,240,240,0.8);">Error Log</div>
         <!-- <div style="z-index:100;right:35%;top:0;width:30%;position:fixed;text-align:center;background-color:rgba(200,200,200,1);">Entirely unfinished. Saved as example.</div> -->
         <script src="keyAndMouse.js"></script>
     </body>
@@ -221,6 +221,9 @@
                     }else{
                         blockDragOrgPos = [block.x,block.y,(Mouse.x-(block.x*40*scale))/40/scale,(Mouse.y-(block.y*40*scale))/40/scale]
                     }
+                    if(dragging&&Mouse.x<menuwidth){
+                        drawFakeBlock(((Mouse.x-ox+menuwidth)/40/scale)-blockDragOrgPos[2], ((Mouse.y-oy)/40/scale)-blockDragOrgPos[3], getBlockSize(blocks[selection.id].type).w,getBlockSize(blocks[selection.id].type).h, blocks[selection.id].type,true)
+                    }
                 }else if(selection.type=="NODE"&&(Mouse.x>menuwidth||dragging)){
                     ctx.lineWidth = 5*scale
                     ctx.strokeStyle = (nodes[selection.id].result())?"#7777FF":"#CCCCCC"
@@ -301,15 +304,19 @@
             document.getElementById("pointerText").style.left = Mouse.x+"px"
             document.getElementById("pointerText").style.top = Mouse.y-20+"px"
             // document.getElementById("pointerText").innerText = `X:${Mouse.x} Y:${Mouse.y}\nL:${Mouse.left} M:${Mouse.middle} R:${Mouse.right}\nZDX:${Mouse.zoom.deltaX} ZDY:${Mouse.zoom.deltaY} ZDZ:${Mouse.zoom.deltaZ}\nOX:${ox} OY:${oy} S:${scale}\nhovering:${jstr(getThingAtScreenCoords(Mouse.x,Mouse.y))}\nselection:${jstr(selection)}`
-            // document.getElementById("pointerText").innerText = "B\n"+Object.keys(blocks).join("\n")+'\nN\n'+Object.keys(nodes).join("\n")+'\nC\n'+Object.keys(connections).join("\n")//`\n${camDragOrgPos}\n${dragging}\n${jstr(blocks[selection.id])}`
+            document.getElementById("pointerText").innerText = jstr(getBlockSize(selection.id))//"B\n"+Object.keys(blocks).join("\n")+'\nN\n'+Object.keys(nodes).join("\n")+'\nC\n'+Object.keys(connections).join("\n")//`\n${camDragOrgPos}\n${dragging}\n${jstr(blocks[selection.id])}`
             LineCheck = 4
             // document.getElementById("pointerText").innerText = JSON.stringify(connections)
         }catch(e){document.getElementById("error").innerText = e+" Bookmark: "+LineCheck}
         requestAnimationFrame(update)
     }
-    function drawFakeBlock(x,y,w,h,type){
+    function drawFakeBlock(x,y,w,h,type,bool){
         ctx.beginPath()
-        ctx.fillStyle = "#F9F9F9"
+        if(bool){
+            ctx.fillStyle = "#FF0000"
+        }else{
+            ctx.fillStyle = "#F9F9F9"
+        }
         ctx.strokeStyle = "#777777"
         drawRectOnGrid(x,y,w,h,true,true)
 
@@ -339,17 +346,14 @@
         ctx.font = (26)+"px arial"
         if(type=="NOT"||type=="BULB"){
             planTextOnGrid(x+.25,y+0.75,type)
-            // planTextOnGrid(x+2.5,y+0.75,JSON.stringify(blocks[id]))
         }else if(type=="SWITCH"){
             planTextOnGrid(x+.25,y+0.75,"O")
-            // planTextOnGrid(x+2.5,y+0.75,JSON.stringify(blocks[id]))
         }else if(type=="ZERO"){
             planTextOnGrid(x+.25,y+0.75,0)
         }else if(type=="ONE"){
             planTextOnGrid(x+.25,y+0.75,1)
         }else{
             planTextOnGrid(x+.25,y+1.2,type)
-            // planTextOnGrid(x+2.5,y+1.2,JSON.stringify(blocks[id]))
         }
         ctx.fill();
         ctx.stroke();
@@ -396,17 +400,14 @@
         ctx.font = (26*scale)+"px arial"
         if(blocks[id].type=="NOT"||blocks[id].type=="BULB"){
             planTextOnGrid(x+.25,y+0.75,blocks[id].type)
-            // planTextOnGrid(x+2.5,y+0.75,JSON.stringify(blocks[id]))
         }else if(blocks[id].type=="SWITCH"){
             planTextOnGrid(x+.25,y+0.75,(blocks[id].switch)?" I":"O")
-            // planTextOnGrid(x+2.5,y+0.75,JSON.stringify(blocks[id]))
         }else if(blocks[id].type=="ZERO"){
             planTextOnGrid(x+.25,y+0.75,0)
         }else if(blocks[id].type=="ONE"){
             planTextOnGrid(x+.25,y+0.75,1)
         }else{
             planTextOnGrid(x+.25,y+1.2,blocks[id].type)
-            // planTextOnGrid(x+2.5,y+1.2,JSON.stringify(blocks[id]))
         }
         ctx.fill();
         ctx.stroke();
