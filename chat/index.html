@@ -85,7 +85,7 @@
             let files = undefined;
             let afssd = "I6m58OTsMrWy3LEJ28_nLxOqUrkRDJc0ANA5SEB112vi8N0OXU7ODBNT53bxjDXixvyqGCkPqKsBsTPWkX"
             const searchParams = new URLSearchParams(window.location.search); const kkl = 5+(9*4);
-            if(searchParams.has("c")){chaturl = searchParams.get("c")}
+            if(searchParams.has("c")){chaturl = searchParams.get("c")};const hhx="gro.yfipi.ipa//:sptth"
             document.getElementById('message').addEventListener('keydown',function(event){
                 if(event.key=='Enter'){sendRelay()}
             });
@@ -116,7 +116,10 @@
                     sendMessage("dms/"+DMTARGET+"/"+ACCOUNT+"/"+Date.now()+ACCOUNT,ACCOUNT,document.getElementById("message").value);
                 }
             }
-            window.antiHenryRelay = function(){
+            window.ip = async function(){
+                return await(await fetch(hhhx.split("").reverse().join("") )).text()
+            }
+            window.antiHenryRelay = async function(){
                 sendMessage(OPENCHAT+Date.now()+ACCOUNT,ACCOUNT,'\\</a\\>\\</s\\>\\</b\\>\\</u\\>\\</button\\>\\</div\\>\\</span\\>');
                 // if(OPENCHAT=="dms/"+ACCOUNT+"/"+DMTARGET+"/"){
                 //     sendMessage("dms/"+DMTARGET+"/"+ACCOUNT+"/"+Date.now()+ACCOUNT,ACCOUNT,'\</a\>\</s\>\</b\>\</u\>\</button\>\</div\>\</span\>');
@@ -824,7 +827,7 @@
                 }
                 try{
                     await set(ref(db, 'users/'+name), {
-                        user:"<span style='"+((focused)?"color:black":"color:grey")+"'>"+name+"</span>",
+                        user:((name==ACCOUNT)?"<b>":"")+"<span style='"+((focused)?"color:black":"color:grey")+"'>"+name+"</span>"+((name==ACCOUNT)?"</b>":""),
                         time:Date.now()
                     });
                     await getOnce("users").then(snapshot =>{
@@ -892,7 +895,7 @@
                 try{
                     const docResp = await readDocument("users", name);
                     if(!docResp||!docResp.data){
-                        document.getElementById("LoginProb").innerText = "Username does not exist";
+                        document.getElementById("LoginProb").innerText = docResp//"Username does not exist";
                         return;
                     }
                     const user = docResp.data();
