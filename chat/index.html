@@ -378,7 +378,7 @@
                 
                 set(ref(db, messageid), {
                     message:message,
-                    user:name+((yyyr)?" V":""),
+                    user:name+((yyyr)?" <span style='color:purple'>V</span>":""),
                     time:Date.now(),
                     formattime:new Date(Date.now()).toLocaleDateString("en-US")+" "+new Date(Date.now()).toLocaleTimeString("en-US")
                 }).then(() => {
