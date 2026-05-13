@@ -606,7 +606,7 @@
                         let output;
                         // }catch(error){document.getElementById("out").innerText = error}
                         if(VERSION==serverV.val()){
-                            output = messages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&messages[ind-1].user==msg.user&&messages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+msg.verif}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=messages.length-1&&messages[ind].user==messages[ind+1].user&&messages[ind].time>messages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
+                            output = messages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&messages[ind-1].user==msg.user&&messages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+((msg.verif==undefined)?" _":msg.verif)}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=messages.length-1&&messages[ind].user==messages[ind+1].user&&messages[ind].time>messages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
                             // testnum2++
                             // if(NOTIFICATIONS&&messages[messages.length-1].user!=ACCOUNT){
                             // testnum3++
@@ -666,7 +666,7 @@
                         Cmessages.reverse();
                         let Coutput;
                         if(VERSION==serverV.val()){
-                            Coutput = Cmessages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&Cmessages[ind-1].user==msg.user&&Cmessages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+msg.verif}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=Cmessages.length-1&&Cmessages[ind].user==Cmessages[ind+1].user&&Cmessages[ind].time>Cmessages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
+                            Coutput = Cmessages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&Cmessages[ind-1].user==msg.user&&Cmessages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+((msg.verif==undefined)?" _":msg.verif)}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=Cmessages.length-1&&Cmessages[ind].user==Cmessages[ind+1].user&&Cmessages[ind].time>Cmessages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
                         }else{
                             Coutput = `<br><b>please reload to get the newest version of the site</b><br><br>(Current version: ${VERSION}, Newest Version: ${serverV.val()})`
                         }
@@ -705,7 +705,7 @@
                 Pmessages.reverse();
                 let Poutput;
                 if(VERSION==serverV.val()){
-                    Poutput = Pmessages.map((msg, ind) => "<msg>"+(((ind!=0&&Pmessages[ind-1].user==msg.user&&Pmessages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+msg.verif}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=Pmessages.length-1&&Pmessages[ind].user==Pmessages[ind+1].user&&Pmessages[ind].time>Pmessages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
+                    Poutput = Pmessages.map((msg, ind) => "<msg>"+(((ind!=0&&Pmessages[ind-1].user==msg.user&&Pmessages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+((msg.verif==undefined)?" _":msg.verif)}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=Pmessages.length-1&&Pmessages[ind].user==Pmessages[ind+1].user&&Pmessages[ind].time>Pmessages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
 
                     if(NOTIFICATIONS&&Pmessages[Pmessages.length-1].user!=ACCOUNT){
                         const tmstmp = await getOnce("pubmeta/"+ACCOUNT+"/")
