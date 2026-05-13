@@ -324,7 +324,7 @@
                 document.getElementById("adduser").value="";
 
             }
-            function sendMessage(messageid, name, message) {
+            async function sendMessage(messageid, name, message) {
                 //easter eggs
                 if(document.getElementById("message").value.toLowerCase().includes("wingdings")){document.body.style.fontFamily="Wingdings";}
                 if(document.getElementById("message").value.toLowerCase().includes("crocante")){document.body.style.fontFamily="Crocante W01";}
@@ -367,9 +367,18 @@
                     return link;
                 });
                 updateChatButtons()
+                const docResp = await readDocument("users", name);
+                let yyyr = false
+                if(!docResp||!docResp.data){
+                    document.getElementById("LoginProb").innerText = "cant find user to verify";
+                }else{
+                    const thing = docResp.data();
+                    yyyr = thing.perms.verified
+                }
+                
                 set(ref(db, messageid), {
                     message:message,
-                    user:name,
+                    user:name+((yyyr)?" V":""),
                     time:Date.now(),
                     formattime:new Date(Date.now()).toLocaleDateString("en-US")+" "+new Date(Date.now()).toLocaleTimeString("en-US")
                 }).then(() => {
@@ -983,7 +992,7 @@
             if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
                 handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));
             }
-            // handleLogin("testuser","password");
+            handleLogin("testuser","password");
             // Start auto check-in every 10 seconds
 
             setTimeout(()=>{checkin(ACCOUNT, document.hasFocus())},500);
