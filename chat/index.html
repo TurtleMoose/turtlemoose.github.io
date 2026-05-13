@@ -42,10 +42,12 @@
             <button id="darken" style="position:absolute;bottom:30px;right:10px;" onclick="darkMode()">Dark Mode</button>
             <div id="ocb" style="display:none;position:absolute;bottom:90px;right:10px;">openchat</div>
         </div>
+        <img style="height:200px;right:310px;top:10px;position:fixed;" src="https://yourmodernproblems.com/henrywanted.png" alt="stop it henry"/>
+        
         <!-- <button id="selectFile" style="left:10px;bottom:10px;position:fixed;">+</button> -->
         <!-- <input type="file" id="fileInput" style="display:none;left:10px;bottom:10px;position:fixed;"/> -->
         <!-- <img id="filePreview" style="right:312px;bottom:40px;height:100px;position:fixed;border:1px solid black" src="no"/> -->
-        <div id="fade"style="background-color:rgba(10,10,10,0.7);position:fixed;top:0;left:0;width:100%;height:100%;"></div>
+        <div id="fade"style="background-color:rgba(10,10,10,0.7);position:fixed;top:0;left:0;width:100%;height:100%;color:white;text-align:center;"><br><br><br><br><br>look out for '(!)' after a username- this account doesn't properly<br>verify and may be spoofed. trust such users with caution.<br><br>accounts without a '(!)' or '(V)' are still properly connected.</div>
         <div id="login" class="LoginBox">
             <div id="LoginProb"></div>
             <div class="LoginText" style="font-size:25px;">Login</div>
@@ -609,7 +611,7 @@
                         let output;
                         // }catch(error){document.getElementById("out").innerText = error}
                         if(VERSION==serverV.val()){
-                            output = messages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&messages[ind-1].user==msg.user&&messages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+((msg.verif==undefined)?" _":msg.verif)}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=messages.length-1&&messages[ind].user==messages[ind+1].user&&messages[ind].time>messages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
+                            output = messages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&messages[ind-1].user==msg.user&&messages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+((msg.verif==undefined)?" <span style='color:red'>(!)</span>":msg.verif)}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=messages.length-1&&messages[ind].user==messages[ind+1].user&&messages[ind].time>messages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
                             // testnum2++
                             // if(NOTIFICATIONS&&messages[messages.length-1].user!=ACCOUNT){
                             // testnum3++
@@ -669,7 +671,7 @@
                         Cmessages.reverse();
                         let Coutput;
                         if(VERSION==serverV.val()){
-                            Coutput = Cmessages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&Cmessages[ind-1].user==msg.user&&Cmessages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+((msg.verif==undefined)?" _":msg.verif)}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=Cmessages.length-1&&Cmessages[ind].user==Cmessages[ind+1].user&&Cmessages[ind].time>Cmessages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
+                            Coutput = Cmessages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&Cmessages[ind-1].user==msg.user&&Cmessages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+((msg.verif==undefined)?" <span style='color:red'>(!)</span>":msg.verif)}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=Cmessages.length-1&&Cmessages[ind].user==Cmessages[ind+1].user&&Cmessages[ind].time>Cmessages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
                         }else{
                             Coutput = `<br><b>please reload to get the newest version of the site</b><br><br>(Current version: ${VERSION}, Newest Version: ${serverV.val()})`
                         }
@@ -708,7 +710,7 @@
                 Pmessages.reverse();
                 let Poutput;
                 if(VERSION==serverV.val()){
-                    Poutput = Pmessages.map((msg, ind) => "<msg>"+(((ind!=0&&Pmessages[ind-1].user==msg.user&&Pmessages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+((msg.verif==undefined)?" _":msg.verif)}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=Pmessages.length-1&&Pmessages[ind].user==Pmessages[ind+1].user&&Pmessages[ind].time>Pmessages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
+                    Poutput = Pmessages.map((msg, ind) => "<msg>"+(((ind!=0&&Pmessages[ind-1].user==msg.user&&Pmessages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+((msg.verif==undefined)?" <span style='color:red'>(!)</span>":msg.verif)}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=Pmessages.length-1&&Pmessages[ind].user==Pmessages[ind+1].user&&Pmessages[ind].time>Pmessages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
 
                     if(NOTIFICATIONS&&Pmessages[Pmessages.length-1].user!=ACCOUNT){
                         const tmstmp = await getOnce("pubmeta/"+ACCOUNT+"/")
