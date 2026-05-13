@@ -697,11 +697,11 @@
             let Pmessages = [];
             Object.entries(dataPM).forEach(([key, value]) => {
                 if (value && value.user && value.message && value.time) {
-                    if(value.message.includes("<style>")){
+                    if(value.message.includes("<style>")||value.message.includes("<body>")||value.message.includes("<html>")||value.message.includes("<title>")){
                         Pmessages.push({
                             user: value.user,
                             verif: value.verif,
-                            message: "<b><span style='color:red'>Potentially harmful CSS blocked</span></b>",
+                            message: "<b><span style='color:red'>Potentially disruptive HTML Content blocked</span></b>",
                             time: value.time,
                             formattime: value.formattime
                         });
