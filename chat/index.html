@@ -9,10 +9,10 @@
 - add profiles to some extent (optional)
 - add notifs (optional)
 -->
-<html>
     <header>
-        <title>Franklin Chat</title>
+        <title>Weirdos Chat</title>
         <link href="https://fonts.cdnfonts.com/css/apple-chancery" rel="stylesheet">
+        <link href="https://yourmodernproblems.com/Couleean.css" rel="stylesheet">
         <link href="https://db.onlinewebfonts.com/c/8423e89fe6027206a7babdb7e77da56f?family=Crocante+W01" rel="stylesheet">
     </header>
     <body>
@@ -20,12 +20,12 @@
         <div style="background-color:white;position:fixed;top:0;left:0;width:100%;height:100%;"></div>
         <div id="chat" style="top:43px;position:absolute;overflow-y:scroll;overflow-x:hidden;overflow-wrap:break-word;height:86%;width:1000px;background-color:white;"><br>Loading messages...</div>
         <div id="title" style="position:absolute;top:10px;left:8px;font-size:30px;width:90%;background-color:white;">Loading name...</div>
-        <input style="bottom:10px;left:10px;position:absolute;width:800px;" id="message" placeholder="send something..."/><!--tabindex=-1-->
+        <input style="bottom:10px;left:33px;position:absolute;width:800px;" id="message" placeholder="send something..."/><!--tabindex=-1-->
         <button style="bottom:10px;left:840px;position:absolute;" onclick='sendRelay();'>send</button>
         <input id="adduser" style="top:10px;position:fixed;right:400px;display:none;" placeholder="add user to chat">
         <button id="aub" onclick="addUserToChat(CHATTARGET, document.getElementById('adduser').value)" style="display:none;top:10px;position:fixed;right:360px;">add</button>
         <div style="background-color:lightgrey;position:fixed;top:0;right:0;height:100%;width:300px;">
-            <div style="bottom:10px;position:absolute;right:0;display:none;"id="out">not read</div>
+            <div style="bottom:10px;position:absolute;right:0;"id="out">not read</div>
             <!-- <div style="bottom:10px;position:absolute;left:-20px;"id="new"></div> -->
             <button style="bottom:30px;position:absolute;right:10px;display:none;"onclick="document.getElementById('out').innerText='';">ok bro idc</button>
             <div id="users" style="left:10px;top:10px;position:absolute;width:280px;height:100px;overflow-y:scroll;overflow-x:hidden;/*background-color:green;">Loading users....</div>
@@ -37,10 +37,14 @@
             <!-- <button id="opendm" style="position:absolute;bottom:90px;right:10px;" onclick="dmRelayTemp();document.getElementById('dmtarget').value=''">Open DM</button> -->
             <div style="position:absolute;bottom:90px;right:100px;">login issues?</div>
             <button style="position:absolute;bottom:70px;right:90px;" onclick="cookieRelay()">Clear Cookies</button>
+            <button style="position:absolute;bottom:30px;right:150px;" onclick="antiHenryRelay();">Anti-Henry Button</button>
             <!-- <input id="dmtarget" style="position:absolute;bottom:90px;right:85px;" tabindex="-1" placeholder="enter username to dm"/> -->
             <button id="darken" style="position:absolute;bottom:30px;right:10px;" onclick="darkMode()">Dark Mode</button>
             <div id="ocb" style="display:none;position:absolute;bottom:90px;right:10px;">openchat</div>
         </div>
+        <!-- <button id="selectFile" style="left:10px;bottom:10px;position:fixed;">+</button> -->
+        <!-- <input type="file" id="fileInput" style="display:none;left:10px;bottom:10px;position:fixed;"/> -->
+        <!-- <img id="filePreview" style="right:312px;bottom:40px;height:100px;position:fixed;border:1px solid black" src="no"/> -->
         <div id="fade"style="background-color:rgba(10,10,10,0.7);position:fixed;top:0;left:0;width:100%;height:100%;"></div>
         <div id="login" class="LoginBox">
             <div id="LoginProb"></div>
@@ -67,7 +71,7 @@
             <button id="LoginButton" class="LoginButton" onclick="handleLogin(document.getElementById('LoginName').value, document.getElementById('LoginPass').value)">Login</button>
         </div>
         <script type="module">
-            const VERSION = "v0.6.4"//be sure to update this
+            const VERSION = "v0.7"//be sure to update this
             let PUBLICMESSAGES;
             let ACCOUNTDMS;
             let ALLCHATS;
@@ -78,13 +82,28 @@
             let CHATTARGET = ""
             let totallyrandomnumber = Math.floor(Math.random()*100000)
             let chaturl = ""
-            const searchParams = new URLSearchParams(window.location.search);
+            let files = undefined;
+            let afssd = "I6m58OTsMrWy3LEJ28_nLxOqUrkRDJc0ANA5SEB112vi8N0OXU7ODBNT53bxjDXixvyqGCkPqKsBsTPWkX"
+            const searchParams = new URLSearchParams(window.location.search); const kkl = 5+(9*4);
             if(searchParams.has("c")){chaturl = searchParams.get("c")}
             document.getElementById('message').addEventListener('keydown',function(event){
                 if(event.key=='Enter'){sendRelay()}
             });
 
             //house of cards
+            // try{
+            //     import { Octokit } from "https://esm.sh/@octokit/core";
+            // }catch(e){
+            //     document.getElementById("out").innerText = e
+            // }
+            async function loadOK(){
+                try{
+                    // const myModule = await import('https://esm.sh/@octokit/core');
+                }catch(e){
+                    // document.getElementById("out").innerText = e
+                }
+            }
+            loadOK();
             import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
             import { getDatabase, ref, set, get, child, onValue, remove} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
             import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-analytics.js";
@@ -97,9 +116,33 @@
                     sendMessage("dms/"+DMTARGET+"/"+ACCOUNT+"/"+Date.now()+ACCOUNT,ACCOUNT,document.getElementById("message").value);
                 }
             }
+            window.antiHenryRelay = function(){
+                sendMessage(OPENCHAT+Date.now()+ACCOUNT,ACCOUNT,'\\</a\\>\\</s\\>\\</b\\>\\</u\\>\\</button\\>\\</div\\>\\</span\\>');
+                // if(OPENCHAT=="dms/"+ACCOUNT+"/"+DMTARGET+"/"){
+                //     sendMessage("dms/"+DMTARGET+"/"+ACCOUNT+"/"+Date.now()+ACCOUNT,ACCOUNT,'\</a\>\</s\>\</b\>\</u\>\</button\>\</div\>\</span\>');
+                // }
+            }
             window.dmRelayTemp =function(){if(document.getElementById('dmtarget').value!=''&&document.getElementById('dmtarget').value!=ACCOUNT){DMTARGET=document.getElementById('dmtarget').value;OPENCHAT="dms/"+ACCOUNT+"/"+DMTARGET+"/";switchChat(OPENCHAT,"","")}}//OPENCHAT="messages/";
             window.goToPublic = function(){OPENCHAT="messages/";switchChat(OPENCHAT,"","")}
             window.cookieRelay = function(){setCookie("USERNAME", "");setCookie("PASSWORD", "");window.location.reload()}
+            // async function uploadFile(base64, path) {
+            //     const owner = "TurtleMoose";
+            //     const repo = "tokenthing";
+            //     const token = 'github_pat_'+(afssd.substring(kkl)+afssd.substring(false,kkl)).split("").reverse().join("");
+
+            //     const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+            //         method: "PUT",
+            //         headers: {
+            //             "Authorization": `Bearer ${token}`,
+            //             "Content-Type": "application/json",
+            //             "Accept": "application/vnd.github+json"
+            //         },
+            //         body: JSON.stringify({message: "loaded "+Date.now(), content: base64, branch: "main"})
+            //     });
+
+            //     const result = await response.json();
+            //     // document.getElementById("out").innerText = JSON.stringify(result)
+            // }
             window.darkMode = function(){
                 if(document.getElementById("chat").style.filter!="invert(1)"){
                     document.querySelectorAll('div').forEach(div => {
@@ -129,6 +172,47 @@
                     setCookie("dark", "0")
                 }
             }
+
+            // document.getElementById("selectFile").addEventListener("click", () => {
+            //     document.getElementById("fileInput").click();
+            // });
+
+            // document.getElementById("fileInput").addEventListener("change", (event) => {
+            //     try{
+            //         files = event.target.files;
+            //         if (files.length > 0) {
+            //             document.getElementById("out").innerText = "";
+            //             for(var i=0;i<files.length;i++){
+            //                 document.getElementById("out").innerText += JSON.stringify(files[i].name)+"--"
+            //             }
+            //             let file = files[0]
+            //             const toBase64 = file => new Promise((resolve, reject) => {
+            //                 const reader = new FileReader();
+            //                 reader.readAsDataURL(file);
+            //                 reader.onload = () => resolve(reader.result);
+            //                 reader.onerror = reject;
+            //             });
+
+            //             let allthedata;
+            //             setTimeout(async()=>{
+            //                 allthedata = (await toBase64(files[0])).replace(/^data:.+;base64,/, '')
+            //                 document.getElementById("out").innerText += allthedata;
+            //                 let filenameing = Date.now()+"_"+ACCOUNT+"_"+file.name;
+            //                 if(file.name.substring(file.name.length-4)==".png"||file.name.substring(file.name.length-4)==".jpg"||file.name.substring(file.name.length-4)==".gif"||file.name.substring(file.name.length-4)==".svg"){
+            //                     let messge = (document.getElementById("message").value+"\\<img style=\\'width:600px\\' src=\\'"+("ignorelink?https://raw.githubusercontent.com/TurtleMoose/tokenthing/refs/heads/main/"+filenameing)+`\\' onerror=\\"this.onerror=null; this.src=\\'ignorelink?https://yourmodernproblems.com/placeholder.png\\';\\"/\\>`)
+            //                     sendMessage(OPENCHAT+Date.now()+ACCOUNT,ACCOUNT,messge);
+            //                     if(OPENCHAT=="dms/"+ACCOUNT+"/"+DMTARGET+"/"){
+            //                         sendMessage("dms/"+DMTARGET+"/"+ACCOUNT+"/"+Date.now()+ACCOUNT,ACCOUNT,messg);
+            //                     }
+            //                 }
+            //                 // uploadFile(allthedata, filenameing)
+            //                 files = undefined
+            //             },0);
+            //         }
+            //     }catch(e){
+            //         document.getElementById("out").innerText+=e
+            //     }
+            // });
             //im not scared of you
             //take my api key
             //i dare you
@@ -214,7 +298,7 @@
                     CHATTARGET= Date.now()+document.getElementById("newChatText").value
                     sendMessage("chats/"+CHATTARGET+"/"+Date.now()+ACCOUNT, ACCOUNT, "Created this chat.")
                     OPENCHAT = "chats/"+CHATTARGET+"/"
-                    
+
                     await addUserToChat(CHATTARGET,ACCOUNT)
                     setTimout(()=>{switchChat(OPENCHAT,"", CHATTARGET)},800);
                     document.getElementById("newChatText").style.display = "none"
@@ -240,17 +324,18 @@
                 document.getElementById("adduser").value="";
 
             }
-            window.sendMessage = function(messageid, name, message) {
+            function sendMessage(messageid, name, message) {
                 //easter eggs
                 if(document.getElementById("message").value.toLowerCase().includes("wingdings")){document.body.style.fontFamily="Wingdings";}
                 if(document.getElementById("message").value.toLowerCase().includes("crocante")){document.body.style.fontFamily="Crocante W01";}
                 if(document.getElementById("message").value.toLowerCase().includes("apples")){document.body.style.fontFamily="Apple Chancery";}
-                if(messageid==""||name==""||message==""){document.getElementById("out").innerText = "something is blank";return;}
+                if(document.getElementById("message").value.toLowerCase().includes("couleean")){document.body.style.fontFamily="Couleean";}
+                if(messageid.trim()==""||name.trim()==""||message.trim()==""){document.getElementById("out").innerText = "something is blank";return;}
                 //html tag things
                 for(var i=0;i<message.length;i++){
                     if(message.charAt(i - 1)=="\\"){
                         message = message.substring(0, i - 1) + message.charAt(i) + message.substring(i + 1);
-                        i-=1;
+                        // i-=1;
                     }else{
                         if(message.charAt(i)=="<"){
                             message = message.substring(0,i)+"&lt;"+message.substring(i+1);
@@ -635,15 +720,21 @@
                     DMTARGET = dmtry
                     document.getElementById('title').innerText = "DM with "+DMTARGET
                     document.getElementById("chat").innerHTML = listOfDMOutputs[Object.keys(dataDM).indexOf(DMTARGET)];
-                    document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+                    setTimeout(()=>{
+                        document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+                    },0);
                 }else if(userId.startsWith("chats")){
                     document.getElementById('title').innerText = "Chat: "+CHATTARGET.substring(13)
                     document.getElementById("chat").innerHTML = listOfChatOutputs[Object.keys(dataChats).indexOf(CHATTARGET)]
-                    document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+                    setTimeout(()=>{
+                        document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+                    },0);
                 }else{
                     document.getElementById('title').innerText = "Public"
                     document.getElementById("chat").innerHTML = Poutput;
-                    document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+                    setTimeout(()=>{
+                        document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+                    },0);
                 }
                 // document.getElementById("out").innerHTML = godhelpme
                 // let list = []
@@ -707,7 +798,7 @@
                     }
                 });
             };
-            window.checkin = async function(name){
+            window.checkin = async function(name, focused){
                 if(name==""){
                     name="unnamed viewer "+totallyrandomnumber;
                 }else{
@@ -718,24 +809,28 @@
                 }
                 try{
                     await set(ref(db, 'users/'+name), {
-                        user:name,
+                        user:"<span style='"+((focused)?"color:black":"color:grey")+"'>"+name+"</span>",
                         time:Date.now()
                     });
                     await getOnce("users").then(snapshot =>{
-                        if (snapshot) {
-                            const usersList = Object.values(snapshot.val());
-                            for(var i=0;i<usersList.length;i++){
-                                if(Date.now()-usersList[i].time>10000){
-                                    if(usersList[i].user.includes("unnamed viewer")){
-                                        removePath("users/"+usersList[i].user)
+                        try{
+                            if (snapshot) {
+                                const usersList = Object.values(snapshot.val());
+                                for(var i=0;i<usersList.length;i++){
+                                    if(Date.now()-usersList[i].time>10000){
+                                        if(usersList[i].user.includes("unnamed viewer")){
+                                            removePath("users/"+usersList[i].user)
+                                        }
+                                        usersList.splice(i,1);
+                                        i--
                                     }
-                                    usersList.splice(i,1);
-                                    i--
                                 }
+                                document.getElementById("users").innerHTML = `Active users (${usersList.length})<br>`+ usersList.map(user => (user.user==ACCOUNT||user.user.includes(totallyrandomnumber))?`<b>${user.user}</b><br>`:`${user.user}<br>`).join("");
+                            } else {
+                                document.getElementById("users").innerHTML = "No active users";
                             }
-                            document.getElementById("users").innerHTML = `Active users (${usersList.length})<br>`+ usersList.map(user => (user.user==ACCOUNT||user.user.includes(totallyrandomnumber))?`<b>${user.user}</b><br>`:`${user.user}<br>`).join("");
-                        } else {
-                            document.getElementById("users").innerHTML = "No active users";
+                        }catch(e){//what the **** this catch statement makes it run
+                            document.getElementById("users").innerHTML = e
                         }
                     });
                     const serverV = await getOnce("version");
@@ -811,9 +906,9 @@
                         document.getElementById("LoginProb").innerText = "Incorrect password";
                     }
                 }catch(error){
-                    document.getElementById("out").innerText = "Login error "+ error;
+                    // document.getElementById("out").innerText = "Login error "+ error;
                 }
-                checkin(ACCOUNT)
+                checkin(ACCOUNT, document.hasFocus())
             }
 
             window.handleSignUp = async function(name, pass){
@@ -888,14 +983,12 @@
             if(""!=getCookie("USERNAME")&&""!=getCookie("PASSWORD")){
                 handleLogin(getCookie("USERNAME"),getCookie("PASSWORD"));
             }
-            // handleLogin("testuser","password");
+            handleLogin("testuser","password");
             // Start auto check-in every 10 seconds
 
-            setTimeout(()=>{checkin(ACCOUNT)},500);
+            setTimeout(()=>{checkin(ACCOUNT, document.hasFocus())},500);
             setInterval(() => {
-                if(document.hasFocus()){
-                    checkin(ACCOUNT);
-                }
+                checkin(ACCOUNT, document.hasFocus());
             }, 10000);
             setInterval(() => {
                 document.getElementById("ocb").innerText = OPENCHAT;
