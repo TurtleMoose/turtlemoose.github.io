@@ -330,7 +330,7 @@
                 if(document.getElementById("message").value.toLowerCase().includes("crocante")){document.body.style.fontFamily="Crocante W01";}
                 if(document.getElementById("message").value.toLowerCase().includes("apples")){document.body.style.fontFamily="Apple Chancery";}
                 if(document.getElementById("message").value.toLowerCase().includes("couleean")){document.body.style.fontFamily="Couleean";}
-                if(messageid.trim()==""||name.trim()==""||message.trim()==""){document.getElementById("out").innerText = "something is blank";return;}
+                if(messageid.trim()==""||name.trim()==" "||message.trim()==""){document.getElementById("out").innerText = "something is blank";return;}
                 //html tag things
                 for(var i=0;i<message.length;i++){
                     if(message.charAt(i - 1)=="\\"){
@@ -378,7 +378,8 @@
                 
                 set(ref(db, messageid), {
                     message:message,
-                    user:name+((yyyr)?" <span style='color:purple'>V</span>":""),
+                    user:name,
+                    verif:((yyyr)?" <span style='color:purple'>(V)</span>":""),
                     time:Date.now(),
                     formattime:new Date(Date.now()).toLocaleDateString("en-US")+" "+new Date(Date.now()).toLocaleTimeString("en-US")
                 }).then(() => {
@@ -485,6 +486,7 @@
                         if (value && value.user && value.message && value.time) {
                             messages.push({
                                 user: value.user,
+                                verif:value.verif,
                                 message: value.message,
                                 time: value.time,
                                 formattime: value.formattime
@@ -510,6 +512,7 @@
                         if (value && value.user && value.message && value.time) {
                             Cmessages.push({
                                 user: value.user,
+                                verif:value.verif,
                                 message: value.message,
                                 time: value.time,
                                 formattime: value.formattime
@@ -591,6 +594,7 @@
                                 messages.push({
                                     user: value.user,
                                     message: value.message,
+                                    verif:value.verif,
                                     time: value.time,
                                     formattime: value.formattime
                                 });
@@ -602,7 +606,7 @@
                         let output;
                         // }catch(error){document.getElementById("out").innerText = error}
                         if(VERSION==serverV.val()){
-                            output = messages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&messages[ind-1].user==msg.user&&messages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=messages.length-1&&messages[ind].user==messages[ind+1].user&&messages[ind].time>messages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
+                            output = messages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&messages[ind-1].user==msg.user&&messages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+msg.verif}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=messages.length-1&&messages[ind].user==messages[ind+1].user&&messages[ind].time>messages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
                             // testnum2++
                             // if(NOTIFICATIONS&&messages[messages.length-1].user!=ACCOUNT){
                             // testnum3++
@@ -651,6 +655,7 @@
                             if (value && value.user && value.message && value.time) {
                                 Cmessages.push({
                                     user: value.user,
+                                    verif: value.verif,
                                     message: value.message,
                                     time: value.time,
                                     formattime: value.formattime
@@ -661,7 +666,7 @@
                         Cmessages.reverse();
                         let Coutput;
                         if(VERSION==serverV.val()){
-                            Coutput = Cmessages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&Cmessages[ind-1].user==msg.user&&Cmessages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=Cmessages.length-1&&Cmessages[ind].user==Cmessages[ind+1].user&&Cmessages[ind].time>Cmessages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
+                            Coutput = Cmessages.map((msg, ind) => "<msg>"+((msg.user=="SERVER")?`<pad><time>${msg.formattime}</time></pad><br><server>SERVER: ${msg.message}</server>`:((ind!=0&&Cmessages[ind-1].user==msg.user&&Cmessages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+msg.verif}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=Cmessages.length-1&&Cmessages[ind].user==Cmessages[ind+1].user&&Cmessages[ind].time>Cmessages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
                         }else{
                             Coutput = `<br><b>please reload to get the newest version of the site</b><br><br>(Current version: ${VERSION}, Newest Version: ${serverV.val()})`
                         }
@@ -689,6 +694,7 @@
                     if (value && value.user && value.message && value.time) {
                         Pmessages.push({
                             user: value.user,
+                            verif: value.verif,
                             message: value.message,
                             time: value.time,
                             formattime: value.formattime
@@ -699,7 +705,7 @@
                 Pmessages.reverse();
                 let Poutput;
                 if(VERSION==serverV.val()){
-                    Poutput = Pmessages.map((msg, ind) => "<msg>"+(((ind!=0&&Pmessages[ind-1].user==msg.user&&Pmessages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=Pmessages.length-1&&Pmessages[ind].user==Pmessages[ind+1].user&&Pmessages[ind].time>Pmessages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
+                    Poutput = Pmessages.map((msg, ind) => "<msg>"+(((ind!=0&&Pmessages[ind-1].user==msg.user&&Pmessages[ind-1].time>msg.time-600000)?``:`<pad><b>${msg.user+msg.verif}</b> <time>${msg.formattime}</time></pad><br>`)+`${msg.message}`+((ind!=Pmessages.length-1&&Pmessages[ind].user==Pmessages[ind+1].user&&Pmessages[ind].time>Pmessages[ind+1].time-600000)?"":'<br>'))+"</msg>").join("<br>");
 
                     if(NOTIFICATIONS&&Pmessages[Pmessages.length-1].user!=ACCOUNT){
                         const tmstmp = await getOnce("pubmeta/"+ACCOUNT+"/")
