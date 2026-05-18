@@ -24,12 +24,12 @@
     });
     //disables context menu on right click
     window.addEventListener("contextmenu", e => e.preventDefault());
-    document.addEventListener('mousedown', (e) => {
+    document.addEventListener('pointerdown', (e) => {
         if(e.button==0){Mouse.left = true;}
         if(e.button==1){Mouse.middle = true;}
         if(e.button==2){Mouse.right = true;}
     });
-    document.addEventListener('mouseup', (e) => {
+    document.addEventListener('pointerup', (e) => {
         if(e.button==0){Mouse.left = false;}
         if(e.button==1){Mouse.middle = false;}
         if(e.button==2){Mouse.right = false;}
@@ -45,7 +45,7 @@
         },100);
     })
 
-    document.addEventListener('mousemove', (e) => {
+    document.addEventListener('pointermove', (e) => {
         Mouse.x = e.clientX;
         Mouse.y = e.clientY; 
     });
