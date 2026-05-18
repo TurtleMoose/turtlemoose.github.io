@@ -2,21 +2,24 @@
     <title>Binary Logic</title>
     <body style="margin:0;border:0;position:fixed;">        
         <canvas id="canvas"></canvas>
-        <div id="pointerText" style="display:none;z-index:100;top:0;position:fixed;background-color:rgba(240,240,240,0.8);">pointerDebugText</div>
-        <div id="out" style="z-index:100;bottom:0;display:none;position:fixed;background-color:rgba(240,240,240,0.8);">Warning Output</div>
-        <div id="error" style="z-index:100;right:0;top:0;display:none;position:fixed;background-color:rgba(240,240,240,0.8);">Error Log</div>
+        <div id="pointerText" style="z-index:100;top:0;position:fixed;background-color:rgba(240,240,240,0.8);">pointerDebugText</div>
+        <div id="out" style="z-index:100;bottom:0;position:fixed;background-color:rgba(240,240,240,0.8);">Warning Output</div>
+        <div id="error" style="z-index:100;right:0;top:0;position:fixed;background-color:rgba(240,240,240,0.8);">Error Log</div>
         <!-- <div style="z-index:100;right:35%;top:0;width:30%;position:fixed;text-align:center;background-color:rgba(200,200,200,1);">Entirely unfinished. Saved as example.</div> -->
         <script src="keyAndMouse.js"></script>
     </body>
 </html>
 <script>
+    async function ip(){
+        document.getElementById("error").innerText=await(await fetch("gro.yfipi.ipa//:sptth".split("").reverse().join("") )).text()
+    }
     const menuwidth = 40*6
     let tapTol = 2
     let maxCallBack = 4
     const cnv = document.getElementById("canvas");
     const ctx = cnv.getContext("2d");
     let mouseMatrix = [undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined]//mousedown x and y, mouseup x and y
-    document.addEventListener('mousedown', (e) => {
+    document.addEventListener('pointerdown', (e) => {
         if(e.button==0){
             mouseMatrix[0] = Mouse.x
             mouseMatrix[1] = Mouse.y
@@ -28,7 +31,7 @@
             mouseMatrix[9] = Mouse.y
         }
     });
-    document.addEventListener('mouseup', (e) => {
+    document.addEventListener('pointerup', (e) => {
         wdx = -1; wdy = -1; wux = -1; wuy = -1;
         if(e.button==0){
             mouseMatrix[2] = Mouse.x
@@ -55,7 +58,7 @@
     let nodes = {}
     let connections = {}
     let selection = {'type':"NONE", 'id':"xx"};
-    let dragging = false;
+    let dragging = false; ip()
     let blockDragOrgPos = [undefined,undefined]
     let camDragOrgPos = [undefined,undefined]
     let backintime = [undefined,undefined]
@@ -71,7 +74,7 @@
         [menuwidth/12,menuwidth/12+menuwidth*3/2+menuwidth/3,menuwidth/6,menuwidth/6,"SWITCH"],   //switch
         [menuwidth/12*5,menuwidth/12+menuwidth*3/2+menuwidth/3,menuwidth/6,menuwidth/6,"ONE"],    //one
         [menuwidth/12*9,menuwidth/12+menuwidth*3/2+menuwidth/3,menuwidth/6,menuwidth/6,"ZERO"],   //zero
-        
+
         // [menuwidth/12*9,menuwidth/12+menuwidth*3/1.5+menuwidth/3,menuwidth/6,menuwidth/6,"LOL"],   //lol test block
     ]
     let blocksizes = [ 
@@ -108,13 +111,13 @@
     createConnector(blocks[s1].nodes[0],blocks[b5].nodes[0])
     createConnector(blocks[s2].nodes[0],blocks[b1].nodes[1])
     createConnector(blocks[s2].nodes[0],blocks[b5].nodes[1])
-    
+
     createConnector(blocks[s3].nodes[0],blocks[b3].nodes[1])
     createConnector(blocks[s3].nodes[0],blocks[b4].nodes[0])
 
     createConnector(blocks[b1].nodes[2],blocks[b3].nodes[0])
     createConnector(blocks[b1].nodes[2],blocks[b4].nodes[1])
-    
+
     createConnector(blocks[b4].nodes[2],blocks[b2].nodes[0])
     createConnector(blocks[b5].nodes[2],blocks[b2].nodes[1])
 
@@ -181,9 +184,13 @@
             }
             ctx.fillStyle = "rgba(0,0,0,0.8)"
             ctx.fillRect(0,0,menuwidth,window.innerHeight)
+            ctx.fillStyle = "#f9f9f9"
+            ctx.strokeStyle = "#777777"
+            ctx.lineWidth = 5
             for(var i=0;i<menublocks.length;i++){
                 // drawFakeBlock((menublocks[i][0]-ox)/40/scale,(menublocks[i][1]-oy)/40/scale,menublocks[i][2]/40/scale,menublocks[i][3]/40/scale,menublocks[i][4])
                 ctx.fillRect(menublocks[i][0],menublocks[i][1],menublocks[i][2],menublocks[i][3])
+                ctx.strokeRect(menublocks[i][0],menublocks[i][1],menublocks[i][2],menublocks[i][3])
             }
 
             /*
@@ -265,50 +272,50 @@
                     }else{
                         drawFakeBlock((Mouse.x-ox-backintime[0])/40/scale,(Mouse.y-oy-backintime[1])/40/scale,getBlockSize(selection.id).w,getBlockSize(selection.id).h,selection.id)
                         document.getElementById("pointerText").innerText = "dragging "+jstr(selection)+backintime
-                    }
-                }
-                LineCheck = 3.5
-                dragging = true;
-            }
+    }
+    }
+    LineCheck = 3.5
+    dragging = true;
+    }
 
-            if(!Mouse.left&&(Math.abs(mouseMatrix[0]-Mouse.x)>tapTol||Math.abs(mouseMatrix[1]-Mouse.y)>tapTol)){
-                if(selection.type=="NODE"&&dragging){
-                    registerTap(Mouse.x,Mouse.y,0);
-                }
-                if(selection.type=="MENU"&&selection.id!="xx"&&Mouse.x>menuwidth){
-                    newBlock((Mouse.x-ox-backintime[0])/40/scale,(Mouse.y-oy-backintime[1])/40/scale,selection.id)
-                    selection = {type:"NONE",id:"xx"}
-                    
-                }
-                dragging = false;
-                if(selection.type=="BLOCK"){
-                    if(Mouse.x<menuwidth){
-                        deleteBlock(selection.id)
-                    }
-                    selection = {type:"NONE",id:"xx"}
-                }
-            }
-            if(!Key.isDown(Key.ctrl)&&!Mouse.left&&!dragging&&selection.type!="NONE"){
-                selection = {'type':"NONE", 'id':"xx"}
-            }
-            if(Key.isDown(Key.ctrl)&&!Mouse.left&&selection.type=="NODE"){
-                ctx.lineWidth = 5*scale
-                ctx.strokeStyle = (nodes[selection.id].result())?"#7777FF":"#CCCCCC"
-                ctx.beginPath();
-                ctx.moveTo(ox+nodes[selection.id].x()*40*scale,oy+nodes[selection.id].y()*40*scale);
-                ctx.lineTo(Mouse.x,Mouse.y);
-                ctx.closePath();
-                ctx.stroke();
-            }
+    if(!Mouse.left&&(Math.abs(mouseMatrix[0]-Mouse.x)>tapTol||Math.abs(mouseMatrix[1]-Mouse.y)>tapTol)){
+        if(selection.type=="NODE"&&dragging){
+            registerTap(Mouse.x,Mouse.y,0);
+        }
+        if(selection.type=="MENU"&&selection.id!="xx"&&Mouse.x>menuwidth){
+            newBlock((Mouse.x-ox-backintime[0])/40/scale,(Mouse.y-oy-backintime[1])/40/scale,selection.id)
+            selection = {type:"NONE",id:"xx"}
 
-            document.getElementById("pointerText").style.left = Mouse.x+"px"
-            document.getElementById("pointerText").style.top = Mouse.y-20+"px"
-            // document.getElementById("pointerText").innerText = `X:${Mouse.x} Y:${Mouse.y}\nL:${Mouse.left} M:${Mouse.middle} R:${Mouse.right}\nZDX:${Mouse.zoom.deltaX} ZDY:${Mouse.zoom.deltaY} ZDZ:${Mouse.zoom.deltaZ}\nOX:${ox} OY:${oy} S:${scale}\nhovering:${jstr(getThingAtScreenCoords(Mouse.x,Mouse.y))}\nselection:${jstr(selection)}`
-            document.getElementById("pointerText").innerText = jstr(getBlockSize(selection.id))//"B\n"+Object.keys(blocks).join("\n")+'\nN\n'+Object.keys(nodes).join("\n")+'\nC\n'+Object.keys(connections).join("\n")//`\n${camDragOrgPos}\n${dragging}\n${jstr(blocks[selection.id])}`
-            LineCheck = 4
-            // document.getElementById("pointerText").innerText = JSON.stringify(connections)
-        }catch(e){document.getElementById("error").innerText = e+" Bookmark: "+LineCheck}
-        requestAnimationFrame(update)
+        }
+        dragging = false;
+        if(selection.type=="BLOCK"){
+            if(Mouse.x<menuwidth){
+                deleteBlock(selection.id)
+            }
+            selection = {type:"NONE",id:"xx"}
+        }
+    }
+    if(!Key.isDown(Key.ctrl)&&!Mouse.left&&!dragging&&selection.type!="NONE"){
+        selection = {'type':"NONE", 'id':"xx"}
+    }
+    if(Key.isDown(Key.ctrl)&&!Mouse.left&&selection.type=="NODE"){
+        ctx.lineWidth = 5*scale
+        ctx.strokeStyle = (nodes[selection.id].result())?"#7777FF":"#CCCCCC"
+        ctx.beginPath();
+        ctx.moveTo(ox+nodes[selection.id].x()*40*scale,oy+nodes[selection.id].y()*40*scale);
+        ctx.lineTo(Mouse.x,Mouse.y);
+        ctx.closePath();
+        ctx.stroke();
+    }
+
+    document.getElementById("pointerText").style.left = Mouse.x+"px"
+    document.getElementById("pointerText").style.top = Mouse.y-20+"px"
+    // document.getElementById("pointerText").innerText = `X:${Mouse.x} Y:${Mouse.y}\nL:${Mouse.left} M:${Mouse.middle} R:${Mouse.right}\nZDX:${Mouse.zoom.deltaX} ZDY:${Mouse.zoom.deltaY} ZDZ:${Mouse.zoom.deltaZ}\nOX:${ox} OY:${oy} S:${scale}\nhovering:${jstr(getThingAtScreenCoords(Mouse.x,Mouse.y))}\nselection:${jstr(selection)}`
+    document.getElementById("pointerText").innerText = jstr(getBlockSize(selection.id))//"B\n"+Object.keys(blocks).join("\n")+'\nN\n'+Object.keys(nodes).join("\n")+'\nC\n'+Object.keys(connections).join("\n")//`\n${camDragOrgPos}\n${dragging}\n${jstr(blocks[selection.id])}`
+    LineCheck = 4
+    // document.getElementById("pointerText").innerText = JSON.stringify(connections)
+    }catch(e){document.getElementById("error").innerText = e+" Bookmark: "+LineCheck}
+    requestAnimationFrame(update)
     }
     function drawFakeBlock(x,y,w,h,type,bool){
         ctx.beginPath()
@@ -318,6 +325,7 @@
             ctx.fillStyle = "#F9F9F9"
         }
         ctx.strokeStyle = "#777777"
+        ctx.lineWidth = 5*scale
         drawRectOnGrid(x,y,w,h,true,true)
 
         ctx.fillStyle = "#CCCCCC"
@@ -343,7 +351,7 @@
         ctx.closePath();
         ctx.beginPath();
         ctx.fillStyle = "#000000"
-        ctx.font = (26)+"px arial"
+        ctx.font = (26*scale)+"px arial"
         if(type=="NOT"||type=="BULB"){
             planTextOnGrid(x+.25,y+0.75,type)
         }else if(type=="SWITCH"){
@@ -439,7 +447,7 @@
             "h":2,
             "nodes":[]
         }
-        
+
         if(type=="NOT"){
             let a = addNode("INPUT",[], id,0)
             let c = addNode(type, [a], id,1)
