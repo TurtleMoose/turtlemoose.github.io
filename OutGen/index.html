@@ -1,0 +1,481 @@
+<html>
+    <!-- <script src="colorstuff.js"></script> -->
+    <div style="left:0;top:0;position:fixed;width:100%;height:100%;z-index:-100;background-color:white;"></div>
+    <canvas style="display:none;top:0;left:100;position:absolute" id="canvas"></canvas>
+    <div id="out" style="display:none;top:/*205*/0px;left:0;position:absolute">Not Loading</div>
+    <img alt="asdf" id="image" style="top:20px;left:250px;position:absolute" onclick="spoil()"
+        src=""/>
+    <div id="spoiler" style="top:20px;left:250px;position:absolute;background-color:#444444;text-align:center;z-index:100;font-size:30px" onclick="spoil()"><br><br><br><br><br><br>spoiler</div>
+    <canvas style="top:0px;left:100px;position:absolute;" id="canvas2"></canvas>
+    <input style="top:120px;left:10px;position:fixed"
+    type="range"
+    id="tol"
+    name="tol"
+    min="0"
+    max="100"
+    value="20" onchange="load(this.value, document.getElementById('tol2').value, readmething())"
+    step="1" />
+  <label for="tol" id="t1" style="top:100px;left:10px;position:fixed">Tolerance</label>
+  <input style="top:160px;left:10px;position:fixed"
+    type="range"
+    id="tol2"
+    name="tol2"
+    min="0"
+    max="100"
+    value="20" onchange="load(document.getElementById('tol').value, this.value, readmething())"
+    step="1" />
+  <label id="t2" for="tol2" style="top:140px;left:10px;position:fixed">small things</label>
+  
+  <fieldset style="top:180px;left:10px;position:fixed">
+  <legend>small things method:</legend>
+
+  <div>
+    <input type="radio" id="one" name="method" onchange="load(document.getElementById('tol').value, document.getElementById('tol2').value, readmething())" value="one" checked />
+    <label for="one">Count all outline colors</label>
+  </div>
+
+  <div>
+    <input type="radio" id="two" name="method" onchange="load(document.getElementById('tol').value, document.getElementById('tol2').value, readmething())" value="two"  />
+    <label for="two">Count only exact color</label>
+  </div>
+</fieldset>
+ 
+<input type="file" id="imageInput" accept="image/*" style="top:75px;left:10px;position:fixed" />
+<label style="font-size:60px;top:0px;position:fixed">OutGen</label>
+</html>
+<style>
+    html{
+        filter:invert(0);
+    }
+</style>
+<script>
+    const imageInput = document.getElementById('imageInput');
+  const imagePreview = document.getElementById('image');
+
+  // Listen for the file selection change event
+  imageInput.addEventListener('change', function() {
+    const file = this.files[0]; // Access the first selected file
+
+    if (file) {
+      // Create a temporary local URL for the file object
+      const objectURL = URL.createObjectURL(file);
+      
+      // Assign the URL to the image source and make it visible
+      imagePreview.src = objectURL;
+      imagePreview.style.display = 'block';
+    }
+  });
+    const outEl = document.getElementById("out");
+    const EMPTY_COLOR = "008331";
+    const VISITED_COLOR = "88ff00";
+    const image = document.getElementById("image");
+    let outFinalFR = {};
+    let IMGWIDTH = image.naturalWidth;
+    let IMGHEIGHT = image.naturalHeight;
+    const cnv = document.getElementById("canvas");
+    const cnv2 = document.getElementById("canvas2");
+    cnv.width = IMGWIDTH;
+    cnv.height = IMGHEIGHT;
+    const ctx = cnv.getContext("2d", { willReadFrequently: true });
+            cnv2.width = IMGWIDTH// * 2;
+    cnv2.height = IMGHEIGHT// * 2;
+    const ctx2 = cnv2.getContext("2d");
+    ctx2.imageSmoothingEnabled = false;
+    ctx.fillStyle = "rgb(16,15,16)";
+    ctx.imageSmoothingEnabled = false;
+    
+    let imgData;
+    let table;
+    let mouseX = 0;
+    let mouseY = 0;
+
+    outEl.innerHTML += "Image and Canvas Loaded";
+    function spoil(){
+        if(document.getElementById("spoiler").style.display=="none"){
+            document.getElementById("spoiler").style.display="block";
+        }else{
+            document.getElementById("spoiler").style.display="none";
+        }
+    }
+function readmething(){
+    return (document.querySelector('input[name="method"]:checked').value=="one")?true:false;
+}
+   
+image.onload = () => {
+  
+     IMGWIDTH = image.naturalWidth;
+     IMGHEIGHT = image.naturalHeight;
+     cnv.width = IMGWIDTH;
+    cnv.height = IMGHEIGHT;
+     cnv2.width = IMGWIDTH;
+    cnv2.height = IMGHEIGHT;
+       //try {
+            ctx.drawImage(image, 0, 0);
+     //   } catch (eb) {
+    //        outEl.textContent += " Draw Image Error";
+    //    }
+    load(document.getElementById('tol').value, document.getElementById('tol2').value, readmething());
+    document.getElementById("spoiler").style.width = image.width + "px";
+    document.getElementById("spoiler").style.height = image.height + "px";
+};
+
+    function load(tol, tol2, method) {
+     IMGWIDTH = image.naturalWidth;
+     IMGHEIGHT = image.naturalHeight;
+     ctx2.width = image.naturalWidth;
+     ctx2.height = image.naturalHeight;
+     cnv2.style.left = (image.offsetLeft+IMGWIDTH)+"px";
+     cnv2.style.top = image.style.top
+ctx2.clearRect(0,0,cnv2.width,cnv2.height);
+document.getElementById("t1").textContent = "Tolerance "+tol
+document.getElementById("t2").textContent = "small things "+tol2
+    try {
+        const TOLERANCE = tol;
+        const TOL2 = TOLERANCE * TOLERANCE;
+
+        function similar(c1, c2) {
+            if (c1 == null || c2 == null) return false;
+            if (
+                c1 === EMPTY_COLOR ||
+                c2 === EMPTY_COLOR ||
+                c1 === VISITED_COLOR ||
+                c2 === VISITED_COLOR
+            ) {
+                return c1 === c2;
+            }
+
+            const dr = ((c1 >> 16) & 255) - ((c2 >> 16) & 255);
+            const dg = ((c1 >> 8) & 255) - ((c2 >> 8) & 255);
+            const db = (c1 & 255) - (c2 & 255);
+
+            return dr * dr + dg * dg + db * db <= TOL2;
+        }
+
+        function toHex(color) {
+            return "#" + color.toString(16).padStart(6, "0");
+        }
+
+        const w = IMGWIDTH;
+        const h = IMGHEIGHT;
+        const imageData = ctx.getImageData(0, 0, w, h);
+        imgData = imageData;
+        const data = imageData.data;
+        table = new Array(h);
+
+        // Load pixels as packed RGB integers
+        for (let y = 0; y < h; y++) {
+            const row = new Array(w);
+            const rowOffset = y * w * 4;
+
+            for (let x = 0; x < w; x++) {
+                const base = rowOffset + x * 4;
+                row[x] =
+                    (data[base] << 16) |
+                    (data[base + 1] << 8) |
+                    data[base + 2];
+            }
+
+            table[y] = row;
+        }
+
+        outEl.textContent += " Loading1";
+
+        ctx2.setTransform(1, 0, 0, 1, 0, 0);
+        ctx2.clearRect(0, 0, cnv2.width, cnv2.height);
+
+        outEl.textContent += " Loading2";
+
+        const rows = table.length;
+        const cols = table[0].length;
+
+        // Remove interior pixels
+        for (let y = 0; y < rows; y++) {
+            const row = table[y];
+
+            for (let x = 0; x < cols; x++) {
+                const pix = row[x];
+                const top = y > 0 ? table[y - 1][x] : null;
+                const bottom = y < rows - 1 ? table[y + 1][x] : null;
+                const left = x > 0 ? row[x - 1] : null;
+                const right = x < cols - 1 ? row[x + 1] : null;
+
+                if (
+                    (similar(pix, top) || top === EMPTY_COLOR) && top !== null &&
+                    (similar(pix, bottom) || bottom === EMPTY_COLOR) && bottom !== null &&
+                    (similar(pix, left) || left === EMPTY_COLOR) && left !== null &&
+                    (similar(pix, right) || right === EMPTY_COLOR) && right !== null
+                ) {
+                    row[x] = EMPTY_COLOR;
+                }
+            }
+        }
+        if(method){
+removeSmallSpots2(tol2, rows, cols);
+        }else{
+            removeSmallSpots(tol2, rows, cols);
+        }
+        outFinalFR = {};
+
+        // Trace paths
+        for (let y = 0; y < rows; y++) {
+            const row = table[y];
+
+            for (let x = 0; x < cols; x++) {
+                const color = row[x];
+
+                if (
+                    color === EMPTY_COLOR ||
+                    color === VISITED_COLOR ||
+                    color === ""
+                ) {
+                    continue;
+                }
+
+                let track = true;
+                let yeple = "";
+                let hjejke = "";
+                let px = x;
+                let py = y;
+                let currentColor = color;
+
+                row[px] = VISITED_COLOR;
+
+                while (track) {
+                    if (yeple === "") {
+                        hjejke = "L " + (px + 0.5) + " " + (py + 0.5);
+                    }
+
+                    yeple +=
+                        (yeple === "" ? "M " : "L ") +
+                        (px + 0.5) +
+                        " " +
+                        (py + 0.5) +
+                        " ";
+
+                    table[py][px] = VISITED_COLOR;
+
+                    let moved = false;
+
+                    if (py > 0 && similar(table[py - 1][px], currentColor) && !moved) {
+                        py--;
+                        moved = true;
+                    } else if (
+                        py > 0 &&
+                        px < cols - 1 &&
+                        similar(table[py - 1][px + 1], currentColor) &&
+                        !moved
+                    ) {
+                        py--;
+                        px++;
+                        moved = true;
+                    } else if (
+                        px < cols - 1 &&
+                        similar(table[py][px + 1], currentColor) &&
+                        !moved
+                    ) {
+                        px++;
+                        moved = true;
+                    } else if (
+                        py < rows - 1 &&
+                        px < cols - 1 &&
+                        similar(table[py + 1][px + 1], currentColor) &&
+                        !moved
+                    ) {
+                        px++;
+                        py++;
+                        moved = true;
+                    } else if (
+                        py < rows - 1 &&
+                        similar(table[py + 1][px], currentColor) &&
+                        !moved
+                    ) {
+                        py++;
+                        moved = true;
+                    } else if (
+                        px > 0 &&
+                        py < rows - 1 &&
+                        similar(table[py + 1][px - 1], currentColor) &&
+                        !moved
+                    ) {
+                        px--;
+                        py++;
+                        moved = true;
+                    } else if (px > 0 &&similar(table[py][px - 1], currentColor) &&!moved) {
+                        px--;
+                        moved = true;
+                    } else if (px > 0 &&py > 0 &&similar(table[py - 1][px - 1], currentColor) &&!moved) {
+                        px--;
+                        py--;
+                        moved = true;
+                    }
+
+                    if (!moved) {
+                        track = false;
+                    }
+                }
+
+                const key = currentColor.toString();
+
+                if (outFinalFR[key]) {
+                    outFinalFR[key] += yeple + hjejke;
+                } else {
+                    outFinalFR[key] = yeple + hjejke;
+                }
+            }
+        }
+
+      //  for (let y = 0; y < rows; y++) {
+    //            const row = table[y];
+       //         for (let x = 0; x < cols; x++) {
+       //             ctx2.fillStyle = "#" + row[x];
+       //             ctx2.fillRect(x, y, 1, 1);
+      //          }
+        //    }
+       
+
+      //  ctx2.translate(IMGWIDTH, 0);
+        for (let y = 0; y < rows; y++) {
+                const row = table[y];
+                for (let x = 0; x < cols; x++) {
+                    ctx2.fillStyle = (row[x]=="008331")?"#FFFFFF":"#000000";
+                    ctx2.fillRect(x, y, 1, 1);
+                }
+            }
+       //     ctx2.translate(-IMGWIDTH, IMGHEIGHT);
+      //       for (const key in outFinalFR) {
+      //      const color = Number(key);
+      //      ctx2.strokeStyle = toHex(color);
+       //     ctx2.fillStyle = toHex(color);
+
+       //     const p = new Path2D(outFinalFR[key]);
+       //     ctx2.stroke(p);
+    //    }
+       //  ctx2.translate(IMGWIDTH, 0);
+       //      for (const key in outFinalFR) {
+       /     ctx2.strokeStyle = "#000000"//toHex(color);
+
+       //     const p = new Path2D(outFinalFR[key]);
+       //     ctx2.stroke(p);
+        //}
+
+
+        function removeSmallSpots2(minSize, rows, cols) {
+    const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+
+    const dirs = [
+        [-1, -1], [0, -1], [1, -1],
+        [-1,  0],          [1,  0],
+        [-1,  1], [0,  1], [1,  1]
+    ];
+
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+
+            if (visited[y][x]) continue;
+
+            const color = table[y][x];
+
+            // Ignore blank pixels
+            if (color === EMPTY_COLOR || color === VISITED_COLOR)
+                continue;
+
+            let stack = [[x, y]];
+            let pixels = [];
+
+            visited[y][x] = true;
+
+            while (stack.length) {
+                const [cx, cy] = stack.pop();
+                pixels.push([cx, cy]);
+
+                for (const [dx, dy] of dirs) {
+                    const nx = cx + dx;
+                    const ny = cy + dy;
+
+                    if (
+                        nx >= 0 && nx < cols &&
+                        ny >= 0 && ny < rows &&
+                        !visited[ny][nx]
+                    ) {
+                        const neighbor = table[ny][nx];
+
+                        // Connect any outline color, regardless of RGB value
+                        if (
+                            neighbor !== EMPTY_COLOR &&
+                            neighbor !== VISITED_COLOR
+                        ) {
+                            visited[ny][nx] = true;
+                            stack.push([nx, ny]);
+                        }
+                    }
+                }
+            }
+
+            // Remove the entire connected outline if it is too small
+            if (pixels.length < minSize) {
+                for (const [px, py] of pixels) {
+                    table[py][px] = EMPTY_COLOR;
+                }
+            }
+        }
+    }
+}
+        function removeSmallSpots(minSize, rows, cols) {
+    const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+
+    const dirs = [
+        [-1, -1], [0, -1], [1, -1],
+        [-1,  0],          [1,  0],
+        [-1,  1], [0,  1], [1,  1]
+    ];
+
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+
+            if (visited[y][x]) continue;
+
+            const color = table[y][x];
+
+            if (color === EMPTY_COLOR || color === VISITED_COLOR)
+                continue;
+
+            let stack = [[x, y]];
+            let pixels = [];
+
+            visited[y][x] = true;
+
+            while (stack.length) {
+                const [cx, cy] = stack.pop();
+                pixels.push([cx, cy]);
+
+                for (const [dx, dy] of dirs) {
+                    const nx = cx + dx;
+                    const ny = cy + dy;
+
+                    if (
+                        nx >= 0 && nx < cols &&
+                        ny >= 0 && ny < rows &&
+                        !visited[ny][nx] &&
+                        similar(table[ny][nx], color)
+                    ) {
+                        visited[ny][nx] = true;
+                        stack.push([nx, ny]);
+                    }
+                }
+            }
+
+            if (pixels.length < minSize) {
+                for (const [px, py] of pixels) {
+                    table[py][px] = EMPTY_COLOR;
+                }
+            }
+        }
+    }
+}
+    
+    } catch (eb) {
+        outEl.textContent += " Error: " + eb;
+    }
+}
+</script>
+</html>
