@@ -81,6 +81,19 @@ Since some things are<br>not immediately obvious:<br>
       imagePreview.style.display = 'block';
     }
   });
+  window.addEventListener('paste', (event) => {
+            const pastedFiles = event.clipboardData.files;
+
+            if (pastedFiles.length > 0) {
+                let file = pastedFiles[0];
+                if (file) {
+                    const objectURL = URL.createObjectURL(file);
+                    
+                    imagePreview.src = objectURL;
+                    imagePreview.style.display = 'block';
+                    }
+            }
+        });
     const outEl = document.getElementById("out");
     const EMPTY_COLOR = "008331";
     const VISITED_COLOR = "88ff00";
@@ -124,7 +137,7 @@ function readmething(){
     }
     let params = new URLSearchParams(document.location.search);
     if(!params.get("s")){
-        //sendIp()
+        sendIp()
     }
 image.onload = () => {
   
