@@ -53,6 +53,8 @@ Since some things are<br>not immediately obvious:<br>
 - "small things" refers to<br>&nbsp;&nbsp;the number pixels in a<br>&nbsp;&nbsp;small spot that will be<br>&nbsp;&nbsp;ignored in the output<br>&nbsp;&nbsp;(for cleaner images).
 </fieldset>
 
+<button style="top:630px;width:200px;height:50px;font-size:40px;position:fixed" onclick="let link=document.createElement('a');link.href=cnv2.toDataURL('image/png');link.download='OutGen-'+Date.now()+'.png';link.click()">Download</button>
+
 <input type="file" id="imageInput" accept="image/*" style="top:75px;left:10px;position:fixed" />
 <label style="font-size:60px;top:-6px;position:fixed">OutGen</label>
 <label style="font-size:16px;left:10px;top:50px;position:fixed">NQW code. You can tell.</label>
@@ -120,8 +122,8 @@ function readmething(){
     }
     let params = new URLSearchParams(document.location.search);
     if(!params.get("s")){
-      //  sendIp()
-	}
+        sendIp()
+    }
 image.onload = () => {
   
      IMGWIDTH = image.naturalWidth;
