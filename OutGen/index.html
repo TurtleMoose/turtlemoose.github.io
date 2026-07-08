@@ -1,9 +1,13 @@
 <html>
+    <title>OutGen</title>
+    <link rel="shortcut icon" href="https://yourmodernproblems.com/favicon.png">
     <div style="left:0;top:0;position:fixed;width:100%;height:100%;z-index:-100;background-color:white;"></div>
     <canvas style="display:none;top:0;left:100;position:absolute" id="canvas"></canvas>
     <div id="out" style="display:none;top:/*205*/0px;left:0;position:absolute">Not Loading</div>
     <img alt="asdf" id="image" style="top:20px;left:250px;position:absolute" onclick="spoil()"
-        src=""/>
+        src="
+        data:image/webp;base64,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
+        "/>
     <div id="spoiler" style="top:20px;left:250px;position:absolute;background-color:#444444;text-align:center;z-index:100;font-size:30px" onclick="spoil()"><br><br><br><br><br><br>spoiler</div>
     <canvas style="top:0px;left:100px;position:absolute;" id="canvas2"></canvas>
     <input style="top:120px;left:10px;position:fixed"
@@ -38,9 +42,20 @@
     <label for="two">Count only exact color</label>
   </div>
 </fieldset>
- 
+<input type="checkbox" style="top:260px;position:fixed" id="vehicle1" checked onchange="water=!water;load(document.getElementById('tol').value, document.getElementById('tol2').value, readmething())">
+<label style="left:30px;top:260px;position:fixed">OutGen Watermark</label>
+ <fieldset style="top:290px;position:fixed">
+<legend>Basic instructions</legend>
+Since some things are<br>not immediately obvious:<br>
+- It's a tool to make outlines<br>&nbsp;&nbsp;from an image. I dunno<br>&nbsp;&nbsp;what its really useful for.<br>
+- The tool is slower with<br>&nbsp;&nbsp;large images.<br>
+- "Tolerance" is basically<br>&nbsp;&nbsp;the tolerance for changes<br>&nbsp;&nbsp;in color, it's pretty jank<br>&nbsp;&nbsp;at low numbers.<br>
+- "small things" refers to<br>&nbsp;&nbsp;the number pixels in a<br>&nbsp;&nbsp;small spot that will be<br>&nbsp;&nbsp;ignored in the output<br>&nbsp;&nbsp;(for cleaner images).
+</fieldset>
+
 <input type="file" id="imageInput" accept="image/*" style="top:75px;left:10px;position:fixed" />
-<label style="font-size:60px;top:0px;position:fixed">OutGen</label>
+<label style="font-size:60px;top:-6px;position:fixed">OutGen</label>
+<label style="font-size:16px;left:10px;top:50px;position:fixed">NQW code. You can tell.</label>
 </html>
 <style>
     html{
@@ -48,6 +63,7 @@
     }
 </style>
 <script>
+    let water = true;
     const imageInput = document.getElementById('imageInput');
   const imagePreview = document.getElementById('image');
 
@@ -364,6 +380,19 @@ removeSmallSpots2(tol2, rows, cols);
                     ctx2.fillStyle = (row[x]=="008331")?"#FFFFFF":"#000000";
                     ctx2.fillRect(x, y, 1, 1);
                 }
+            }
+            if(water){
+                ctx2.font = (IMGHEIGHT/20)+'px Arial'; 
+                ctx2.strokeStyle = "#FFFFFF";
+                ctx2.strokeText("OutGen", 2, (IMGHEIGHT/20))
+                ctx2.fillStyle = "#000000";
+                ctx2.fillText("OutGen", 2, (IMGHEIGHT/20))
+                ctx2.font = (IMGHEIGHT/66)+'px Arial'; 
+                ctx2.strokeStyle = "#FFFFFF";
+                ctx2.strokeText("yourmodernproblems.com", 2, (IMGHEIGHT/66)+(IMGHEIGHT/20))
+                ctx2.fillStyle = "#000000";
+                ctx2.fillText("yourmodernproblems.com", 2, (IMGHEIGHT/66)+(IMGHEIGHT/20))
+            
             }
        //     ctx2.translate(-IMGWIDTH, IMGHEIGHT);
       //       for (const key in outFinalFR) {
