@@ -7,11 +7,12 @@
         <div id="FSW"style="position:absolute;transition:1s;color:FFF;background-color:rgba(0,0,0,0.5);opacity:0;left:40%;top:40;width:20%;text-align:center;">Use Backtick (`) to Enter/Exit Fullscreen</div>
         <div id="coo"style="position:absolute;left:0;top:20;">coo</div>
         <div id="tes"style="position:absolute;left:0;top:100;"></div>
-        <div id="ins"style="position:absolute;left:30%;text-align:center;top:0;width:40%;"><!--WASD to move, arrow keys or mouse rotate, E/Q change fov, 1 for jitter and 2 for shatter, U/I J/K N/M rotate debug--></div>
+        <div id="ins"style="position:absolute;left:30%;text-align:center;top:0;width:40%;">!! I haven't actually had a chance to test this yet because my laptop has no camera. !!<!--WASD to move, arrow keys or mouse rotate, E/Q change fov, 1 for jitter and 2 for shatter, U/I J/K N/M rotate debug--></div>
         <input id="add1" style="position:absolute;bottom:30px;left:30;height:40px;font-size:40px;width:150px;z-index:10000"/>
         <input id="add2" style="position:absolute;bottom:30px;left:180;height:40px;font-size:40px;width:320px;z-index:10000"/>
         <input id="add3" style="position:absolute;bottom:30px;left:500;height:40px;font-size:40px;width:150px;z-index:10000"/>
         <input id="add4" style="position:absolute;bottom:30px;left:650;height:40px;font-size:40px;width:150px;z-index:10000"/>
+        <a style="position:absolute;top:30px;right:20;height:40px;font-size:20px;width:160px;z-index:10000" href="https://yourmodernproblems.com/stormhand/stormhand.zip" download>Download Server Code and Example</a>
     </body>
 
     <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
@@ -95,18 +96,13 @@
     </script>
     <script>
         //NEW HAND
-let br = "https://"
-let ip; thing()
+let br = "http://"
+let ip = "localhost"
 let port = ':3000'
 let pth = '/data'
 
-async function thing(){
-  let response = await fetch("https://api.ipify.org");
-  ip = await response.text();
-  document.getElementById("add2").value = ip
-};
 document.getElementById("add1").value = br
-
+document.getElementById("add2").value = ip
 document.getElementById("add3").value = port
 document.getElementById("add4").value = pth
 document.getElementById("add1").addEventListener("change",function(){
