@@ -1713,7 +1713,9 @@ function test(text){
         angles[20] = angleBetween(diff(p(10), p(11)), diff(p(11), p(12))); //m
         angles[21] = angleBetween(diff(p(14), p(15)), diff(p(15), p(16))); //r
         angles[22] = angleBetween(diff(p(18), p(19)), diff(p(19), p(20))); //h
-
+        for(var i=0;i<angles.length;i++){
+            angles[i] = angles[i]/90
+        }
         return angles;
     }
 </script>
